@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>OpenSourceImportDate</key>
+		<string>2015-10-23</string>
+		<key>OpenSourceLicense</key>
+		<string>Uganda</string>
+		<key>OpenSourceLicenseFile</key>
+		<string>vim.txt</string>
+		<key>OpenSourceProject</key>
+		<string>vim</string>
+		<key>OpenSourceSCM</key>
+		<string>git clone https://github.com/vim/vim; git checkout 60cce2fb736c8ff6fdb9603f502d3c15f1f7a25d</string>
+		<key>OpenSourceVersion</key>
+		<string>7.4.898</string>
+		<key>OpenSourceWebsiteURL</key>
+		<string>http://www.vim.org/</string>
+	</dict>
+</array>
+</plist>
