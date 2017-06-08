@@ -104,11 +104,13 @@
 #  define UNIX
 # endif
 # ifndef FEAT_CLIPBOARD
+#ifndef DARLING
 #  define FEAT_CLIPBOARD
 #  if defined(FEAT_SMALL) && !defined(FEAT_MOUSE)
 #   define FEAT_MOUSE
 #  endif
 # endif
+#endif
 #endif
 #if defined(MACOS_X) || defined(MACOS_CLASSIC)
 # define MACOS
