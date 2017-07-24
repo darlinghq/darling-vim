@@ -74,4 +74,9 @@ add_darling_executable(xxd xxd/xxd.c)
 
 install(TARGETS vim xxd DESTINATION libexec/darling/usr/bin)
 
-
+InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/ex")
+InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/rview")
+InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/rvim")
+InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/vi")
+InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/view")
+InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/vimdiff")
