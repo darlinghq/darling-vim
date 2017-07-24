@@ -8,6 +8,7 @@ add_definitions(-DHAVE_CONFIG_H -DMACOS_X_UNIX)
 include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/proto
+	${CMAKE_SOURCE_DIR}/src/libc/gen
 )
 
 set(vim_sources
