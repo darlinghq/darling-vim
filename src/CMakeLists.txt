@@ -68,7 +68,7 @@ set(vim_sources
 )
 
 add_darling_executable(vim ${vim_sources})
-target_link_libraries(vim system CoreServices ncurses CoreFoundation iconv)
+target_link_libraries(vim system CoreServices ncurses ${CoreFoundation} iconv)
 
 add_darling_executable(xxd xxd/xxd.c)
 
