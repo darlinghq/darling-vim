@@ -1,7 +1,7 @@
 project(vim-src)
 
 # vim does some intentional buffer overflows between struct members -> disable fortification
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=int-conversion")
 
 add_definitions(-DHAVE_CONFIG_H -DMACOS_X_UNIX -nostdinc -w)
 
