@@ -108,8 +108,9 @@ map ,o oPut 'X's in the left box, then hit 'C' or 'R'
 map ,R 03stop
 "
 " Write a new line (used by 'I'nitialize board)
+" In remembrance of John Conway, 26 December 1937 – 11 April 2020.
 map )0 o-                    --....................--....................-
-map )1 o-        VIM         --....................--....................-
+map )1 o-    JOHN CONWAY     --....................--....................-
 map )2 o-       LIVES        --....................--....................-
 "
 "
@@ -138,7 +139,7 @@ map ,Id1 o# X .`a22lr 
 map ,Il0 o#XX .`a22lr 
 map ,Id0 o#  .`a22lr 
 "
-" Patterns used to replace a germ with it's next generation
+" Patterns used to replace a germ with its next generation
 map ,Iaa o=AB =BC =CD =DE =EF =FG =GH =HI =IJ =JK =KL =LM =MN =NO =OP =PQ =QR
 map ,Iab o=RS =ST =TU =UV =VW =WX =XY =YZ =Z 
 "
@@ -232,7 +233,7 @@ map ,m p
 " Delete the character under the cursor
 map ,n x
 "
-" Replace a character by it's next, A --> B,  B --> C, etc.
+" Replace a character by its next, A --> B,  B --> C, etc.
 map ,a `a,jGi?=,ma0,dll,j`a21l,ml,nh
 "
 "  ----- END of Work out one germ -----

@@ -1,6 +1,6 @@
 " Vim plugin for showing matching parens
 " Maintainer:  Bram Moolenaar <Bram@vim.org>
-" Last Change: 2014 Jul 19
+" Last Change: 2020 Jun 18
 
 " Exit quickly when:
 " - this plugin was already loaded (or disabled)
@@ -21,6 +21,7 @@ endif
 augroup matchparen
   " Replace all matchparen autocommands
   autocmd! CursorMoved,CursorMovedI,WinEnter * call s:Highlight_Matching_Pair()
+  autocmd! WinLeave * call s:Remove_Matches()
   if exists('##TextChanged')
     autocmd! TextChanged,TextChangedI * call s:Highlight_Matching_Pair()
   endif
@@ -36,12 +37,9 @@ set cpo-=C
 
 " The function that is invoked (very often) to define a ":match" highlighting
 " for any matching paren.
-function! s:Highlight_Matching_Pair()
+func s:Highlight_Matching_Pair()
   " Remove any previous match.
-  if exists('w:paren_hl_on') && w:paren_hl_on
-    silent! call matchdelete(3)
-    let w:paren_hl_on = 0
-  endif
+  call s:Remove_Matches()
 
   " Avoid that we remove the popup menu.
   " Return when there are no colors (looks like the cursor jumps).
@@ -55,14 +53,19 @@ function! s:Highlight_Matching_Pair()
   let before = 0
 
   let text = getline(c_lnum)
-  let c = text[c_col - 1]
+  let matches = matchlist(text, '\(.\)\=\%'.c_col.'c\(.\=\)')
+  if empty(matches)
+    let [c_before, c] = ['', '']
+  else
+    let [c_before, c] = matches[1:2]
+  endif
   let plist = split(&matchpairs, '.\zs[:,]')
   let i = index(plist, c)
   if i < 0
     " not found, in Insert mode try character before the cursor
     if c_col > 1 && (mode() == 'i' || mode() == 'R')
-      let before = 1
-      let c = text[c_col - 2]
+      let before = strlen(c_before)
+      let c = c_before
       let i = index(plist, c)
     endif
     if i < 0
@@ -98,18 +101,28 @@ function! s:Highlight_Matching_Pair()
     call cursor(c_lnum, c_col - before)
   endif
 
-  " Build an expression that detects whether the current cursor position is in
-  " certain syntax types (string, comment, etc.), for use as searchpairpos()'s
-  " skip argument.
-  " We match "escape" for special items, such as lispEscapeSpecial.
-  let s_skip = '!empty(filter(map(synstack(line("."), col(".")), ''synIDattr(v:val, "name")''), ' .
+  if !has("syntax") || !exists("g:syntax_on")
+    let s_skip = "0"
+  else
+    " Build an expression that detects whether the current cursor position is
+    " in certain syntax types (string, comment, etc.), for use as
+    " searchpairpos()'s skip argument.
+    " We match "escape" for special items, such as lispEscapeSpecial.
+    let s_skip = '!empty(filter(map(synstack(line("."), col(".")), ''synIDattr(v:val, "name")''), ' .
 	\ '''v:val =~? "string\\|character\\|singlequote\\|escape\\|comment"''))'
-  " If executing the expression determines that the cursor is currently in
-  " one of the syntax types, then we want searchpairpos() to find the pair
-  " within those syntax types (i.e., not skip).  Otherwise, the cursor is
-  " outside of the syntax types and s_skip should keep its value so we skip any
-  " matching pair inside the syntax types.
-  execute 'if' s_skip '| let s_skip = 0 | endif'
+    " If executing the expression determines that the cursor is currently in
+    " one of the syntax types, then we want searchpairpos() to find the pair
+    " within those syntax types (i.e., not skip).  Otherwise, the cursor is
+    " outside of the syntax types and s_skip should keep its value so we skip
+    " any matching pair inside the syntax types.
+    " Catch if this throws E363: pattern uses more memory than 'maxmempattern'.
+    try
+      execute 'if ' . s_skip . ' | let s_skip = "0" | endif'
+    catch /^Vim\%((\a\+)\)\=:E363/
+      " We won't find anything, so skip searching, should keep Vim responsive.
+      return
+    endtry
+  endif
 
   " Limit the search to lines visible in the window.
   let stoplinebottom = line('w$')
@@ -180,10 +193,32 @@ function! s:Highlight_Matching_Pair()
   endif
 endfunction
 
+func s:Remove_Matches()
+  if exists('w:paren_hl_on') && w:paren_hl_on
+    silent! call matchdelete(3)
+    let w:paren_hl_on = 0
+  endif
+endfunc
+
+
 " Define commands that will disable and enable the plugin.
-command! NoMatchParen windo silent! call matchdelete(3) | unlet! g:loaded_matchparen |
-	  \ au! matchparen
-command! DoMatchParen runtime plugin/matchparen.vim | windo doau CursorMoved
+command DoMatchParen call s:DoMatchParen()
+command NoMatchParen call s:NoMatchParen()
+
+func s:NoMatchParen()
+  let w = winnr()
+  noau windo silent! call matchdelete(3)
+  unlet! g:loaded_matchparen
+  exe "noau ". w . "wincmd w"
+  au! matchparen
+endfunc
+
+func s:DoMatchParen()
+  runtime plugin/matchparen.vim
+  let w = winnr()
+  silent windo doau CursorMoved
+  exe "noau ". w . "wincmd w"
+endfunc
 
 let &cpo = s:cpo_save
 unlet s:cpo_save

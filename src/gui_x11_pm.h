@@ -1,4 +1,4 @@
-/* vi:set ts=8 sts=4 sw=4:
+/* vi:set ts=8 sts=4 sw=4 noet:
  *
  * VIM - Vi IMproved		by Bram Moolenaar
  *				GUI/Motif support by Robert Webb
@@ -84,7 +84,7 @@ static char **(built_in_pixmaps[]) =
     tb_exit_xpm
 };
 
-/* Indices for named colors */
+// Indices for named colors
 #define BACKGROUND	0
 #define FOREGROUND	1
 #define BOTTOM_SHADOW	2

@@ -1,4 +1,4 @@
-/* vi:set ts=8 sts=4 sw=4:
+/* vi:set ts=8 sts=4 sw=4 noet:
  *
  * VIM - Vi IMproved		by Bram Moolenaar
  *
@@ -6,33 +6,29 @@
  * Do ":help credits" in Vim to see a list of people who contributed.
  */
 
-#if defined(FEAT_OLE) && defined(FEAT_GUI_W32)
+#if defined(FEAT_OLE) && defined(FEAT_GUI_MSWIN)
 /*
  * OLE server implementation.
  *
  * See os_mswin.c for the client side.
  */
-
-/*
- * We have some trouble with order of includes here.  For Borland it needs to
- * be different from MSVC...
- */
-#ifndef __BORLANDC__
 extern "C" {
 # include "vim.h"
 }
-#endif
 
 #include <windows.h>
 #include <oleauto.h>
 
 extern "C" {
-#ifdef __BORLANDC__
-# include "vim.h"
-#endif
 extern HWND s_hwnd;
 extern HWND vim_parent_hwnd;
 }
+
+#if (defined(_MSC_VER) && (_MSC_VER >= 1700)) || (__cplusplus >= 201103L)
+# define FINAL final
+#else
+# define FINAL
+#endif
 
 #if (defined(_MSC_VER) && _MSC_VER < 1300) || !defined(MAXULONG_PTR)
 /* Work around old versions of basetsd.h which wrongly declares
@@ -93,10 +89,10 @@ static CVim *app = 0;
  * ----------
  */
 
-class CVim : public IVim
+class CVim FINAL : public IVim
 {
 public:
-    ~CVim();
+    virtual ~CVim();
     static CVim *Create(int *pbDoRestart);
 
     // IUnknown members
@@ -334,7 +330,7 @@ CVim::SendKeys(BSTR keys)
     }
 
     /* Translate key codes like <Esc> */
-    str = replace_termcodes((char_u *)buffer, &ptr, FALSE, TRUE, FALSE);
+    str = replace_termcodes((char_u *)buffer, &ptr, REPTERM_DO_LT, NULL);
 
     /* If ptr was set, then a new buffer was allocated,
      * so we can free the old one.
@@ -380,7 +376,7 @@ CVim::Eval(BSTR expr, BSTR *result)
     if (len == 0)
 	return E_INVALIDARG;
 
-    buffer = (char *)alloc((unsigned)len);
+    buffer = (char *)alloc(len);
 
     if (buffer == NULL)
 	return E_OUTOFMEMORY;
@@ -392,7 +388,7 @@ CVim::Eval(BSTR expr, BSTR *result)
 
     /* Evaluate the expression */
     ++emsg_skip;
-    str = (char *)eval_to_string((char_u *)buffer, NULL, TRUE);
+    str = (char *)eval_to_string((char_u *)buffer, TRUE);
     --emsg_skip;
     vim_free(buffer);
     if (str == NULL)
@@ -428,10 +424,11 @@ CVim::Eval(BSTR expr, BSTR *result)
  * ----------
  */
 
-class CVimCF : public IClassFactory
+class CVimCF FINAL : public IClassFactory
 {
 public:
     static CVimCF *Create();
+    virtual ~CVimCF() {};
 
     STDMETHOD(QueryInterface)(REFIID riid, void ** ppv);
     STDMETHOD_(unsigned long, AddRef)(void);
@@ -638,7 +635,7 @@ static void GUIDtochar(const GUID &guid, char *GUID, int length)
     LPOLESTR wGUID = NULL;
     StringFromCLSID(guid, &wGUID);
 
-    // Covert from wide characters to non-wide
+    // Convert from wide characters to non-wide
     wcstombs(GUID, wGUID, length);
 
     // Free memory
@@ -752,7 +749,7 @@ extern "C" void InitOLE(int *pbDoRestart)
     hr = RegisterActiveObject(
 	app,
 	MYCLSID,
-	NULL,
+	0,
 	&app_id);
 
     if (FAILED(hr))

@@ -1,4 +1,4 @@
-/* vi:set ts=8 sts=4 sw=4:
+/* vi:set ts=8 sts=4 sw=4 noet:
  *
  * VIM - Vi IMproved	by Bram Moolenaar
  *
@@ -15,23 +15,21 @@
 #undef NDEBUG
 #include <assert.h>
 
-/* Must include main.c because it contains much more than just main() */
+// Must include main.c because it contains much more than just main()
 #define NO_VIM_MAIN
 #include "main.c"
 
-/* This file has to be included because the tested functions are static */
+// This file has to be included because the tested functions are static
 #include "memfile.c"
 
 #define index_to_key(i) ((i) ^ 15167)
 #define TEST_COUNT 50000
 
-static void test_mf_hash __ARGS((void));
-
 /*
  * Test mf_hash_*() functions.
  */
     static void
-test_mf_hash()
+test_mf_hash(void)
 {
     mf_hashtab_T   ht;
     mf_hashitem_T  *item;
@@ -41,21 +39,21 @@ test_mf_hash()
 
     mf_hash_init(&ht);
 
-    /* insert some items and check invariants */
+    // insert some items and check invariants
     for (i = 0; i < TEST_COUNT; i++)
     {
 	assert(ht.mht_count == i);
 
-	/* check that number of buckets is a power of 2 */
+	// check that number of buckets is a power of 2
 	num_buckets = ht.mht_mask + 1;
 	assert(num_buckets > 0 && (num_buckets & (num_buckets - 1)) == 0);
 
-	/* check load factor */
+	// check load factor
 	assert(ht.mht_count <= (num_buckets << MHT_LOG_LOAD_FACTOR));
 
 	if (i < (MHT_INIT_SIZE << MHT_LOG_LOAD_FACTOR))
 	{
-	    /* first expansion shouldn't have occurred yet */
+	    // first expansion shouldn't have occurred yet
 	    assert(num_buckets == MHT_INIT_SIZE);
 	    assert(ht.mht_buckets == ht.mht_small_buckets);
 	}
@@ -68,8 +66,8 @@ test_mf_hash()
 	key = index_to_key(i);
 	assert(mf_hash_find(&ht, key) == NULL);
 
-	/* allocate and add new item */
-	item = (mf_hashitem_T *)lalloc_clear(sizeof(mf_hashtab_T), FALSE);
+	// allocate and add new item
+	item = LALLOC_CLEAR_ONE(mf_hashitem_T);
 	assert(item != NULL);
 	item->mhi_key = key;
 	mf_hash_add_item(&ht, item);
@@ -78,13 +76,13 @@ test_mf_hash()
 
 	if (ht.mht_mask + 1 != num_buckets)
 	{
-	    /* hash table was expanded */
+	    // hash table was expanded
 	    assert(ht.mht_mask + 1 == num_buckets * MHT_GROWTH_FACTOR);
 	    assert(i + 1 == (num_buckets << MHT_LOG_LOAD_FACTOR));
 	}
     }
 
-    /* check presence of inserted items */
+    // check presence of inserted items
     for (i = 0; i < TEST_COUNT; i++)
     {
 	key = index_to_key(i);
@@ -93,7 +91,7 @@ test_mf_hash()
 	assert(item->mhi_key == key);
     }
 
-    /* delete some items */
+    // delete some items
     for (i = 0; i < TEST_COUNT; i++)
     {
 	if (i % 100 < 70)
@@ -116,7 +114,7 @@ test_mf_hash()
 	}
     }
 
-    /* check again */
+    // check again
     for (i = 0; i < TEST_COUNT; i++)
     {
 	key = index_to_key(i);
@@ -133,12 +131,12 @@ test_mf_hash()
 	}
     }
 
-    /* free hash table and all remaining items */
+    // free hash table and all remaining items
     mf_hash_free_all(&ht);
 }
 
     int
-main()
+main(void)
 {
     test_mf_hash();
     return 0;

@@ -1,4 +1,4 @@
-*usr_01.txt*	For Vim version 7.4.  Last change: 2010 Nov 03
+*usr_01.txt*	For Vim version 8.2.  Last change: 2019 Nov 21
 
 		     VIM USER MANUAL - by Bram Moolenaar
 
@@ -41,11 +41,11 @@ the commands and options used for it.  Use these two commands:
 	Press  CTRL-O  to jump back (repeat to go further back).
 
 Many links are in vertical bars, like this: |bars|.  The bars themselves may
-be hidden or invisible, see below.  An option name, like 'number', a command
+be hidden or invisible; see below.  An option name, like 'number', a command
 in double quotes like ":write" and any other word can also be used as a link.
 Try it out: Move the cursor to  CTRL-]  and press CTRL-] on it.
 
-Other subjects can be found with the ":help" command, see |help.txt|.
+Other subjects can be found with the ":help" command; see |help.txt|.
 
 The bars and stars are usually hidden with the |conceal| feature.  They also
 use |hl-Ignore|, using the same color for the text as the background.  You can
@@ -71,7 +71,7 @@ you are using:
 
 Unix: >
 	:!cp -i $VIMRUNTIME/vimrc_example.vim ~/.vimrc
-MS-DOS, MS-Windows, OS/2: >
+MS-Windows: >
 	:!copy $VIMRUNTIME/vimrc_example.vim $VIM/_vimrc
 Amiga: >
 	:!copy $VIMRUNTIME/vimrc_example.vim $VIM/.vimrc
@@ -101,14 +101,14 @@ For more info see |vimrc| and |compatible-default|.
 	alternative called "evim" (easy Vim).  This is still Vim, but used in
 	a way that resembles a click-and-type editor like Notepad.  It always
 	stays in Insert mode, thus it feels very different.  It is not
-	explained in the user manual, since it should be mostly self
-	explanatory.  See |evim-keys| for details.
+	explained in the user manual, since it should be mostly
+	self-explanatory.  See |evim-keys| for details.
 
 ==============================================================================
 *01.3*	Using the Vim tutor				*tutor* *vimtutor*
 
 Instead of reading the text (boring!) you can use the vimtutor to learn your
-first Vim commands.  This is a 30 minute tutorial that teaches the most basic
+first Vim commands.  This is a 30-minute tutorial that teaches the most basic
 Vim functionality hands-on.
 
 On Unix, if Vim has been properly installed, you can start it from the shell:
@@ -140,19 +140,19 @@ On other systems, you have to do a little work:
 
 1. Copy the tutor file.  You can do this with Vim (it knows where to find it):
 >
-	vim -u NONE -c 'e $VIMRUNTIME/tutor/tutor' -c 'w! TUTORCOPY' -c 'q'
+	vim --clean -c 'e $VIMRUNTIME/tutor/tutor' -c 'w! TUTORCOPY' -c 'q'
 <
    This will write the file "TUTORCOPY" in the current directory.  To use a
 translated version of the tutor, append the two-letter language code to the
 filename.  For French:
 >
-	vim -u NONE -c 'e $VIMRUNTIME/tutor/tutor.fr' -c 'w! TUTORCOPY' -c 'q'
+	vim --clean -c 'e $VIMRUNTIME/tutor/tutor.fr' -c 'w! TUTORCOPY' -c 'q'
 <
 2. Edit the copied file with Vim:
 >
-	vim -u NONE -c "set nocp" TUTORCOPY
+	vim --clean TUTORCOPY
 <
-   The extra arguments make sure Vim is started in a good mood.
+   The --clean argument makes sure Vim is started with nice defaults.
 
 3. Delete the copied file when you are finished with it:
 >
@@ -189,4 +189,4 @@ donate part of the profit to help AIDS victims in Uganda.  See |iccf|.
 
 Next chapter: |usr_02.txt|  The first steps in Vim
 
-Copyright: see |manual-copyright|  vim:tw=78:ts=8:ft=help:norl:
+Copyright: see |manual-copyright|  vim:tw=78:ts=8:noet:ft=help:norl:

@@ -12,75 +12,11 @@ ifndef VIMRUNTIME
 VIMRUNTIME = ../../runtime
 endif
 
-LANGUAGES =	af \
-		ca \
-		cs \
-		cs.cp1250 \
-		de \
-		en_GB \
-		eo \
-		es \
-		fi \
-		fr \
-		ga \
-		it \
-		ja \
-		ja.sjis \
-		ko \
-		ko.UTF-8 \
-		no \
-		pl \
-		pl.cp1250 \
-		pt_BR \
-		ru \
-		ru.cp1251 \
-		sk \
-		sk.cp1250 \
-		sv \
-		uk \
-		uk.cp1251 \
-		vi \
-		zh_CN \
-		zh_CN.UTF-8 \
-		zh_CN.cp936 \
-		zh_TW \
-		zh_TW.UTF-8 \
-
-MOFILES =	af.mo \
-		ca.mo \
-		cs.cp1250.mo \
-		cs.mo \
-		de.mo \
-		en_GB.mo \
-		eo.mo \
-		es.mo \
-		fi.mo \
-		fr.mo \
-		ga.mo \
-		it.mo \
-		ja.mo \
-		ja.sjis.mo \
-		ko.mo \
-		ko.UTF-8.mo \
-		no.mo \
-		pl.cp1250.mo \
-		pl.mo \
-		pt_BR.mo \
-		ru.cp1251.mo \
-		ru.mo \
-		sk.cp1250.mo \
-		sk.mo \
-		sv.mo \
-		uk.cp1251.mo \
-		uk.mo \
-		vi.mo \
-		zh_CN.UTF-8.mo \
-		zh_CN.cp936.mo \
-		zh_CN.mo \
-		zh_TW.UTF-8.mo \
-		zh_TW.mo \
+# get LANGUAGES, MOFILES and MOCONVERTED
+include Make_all.mak
 
 PACKAGE = vim
+VIM = ../vim
 
 # Uncomment one of the lines below or modify it to put the path to your
 # gettext binaries
@@ -109,34 +45,61 @@ MKD = mkdir -p
 
 .SUFFIXES:
 .SUFFIXES: .po .mo .pot
-.PHONY: first_time all install clean $(LANGUAGES)
+.PHONY: first_time all install install-all clean $(LANGUAGES)
 
 .po.mo:
 	$(MSGFMT) -o $@ $<
 
-all: $(MOFILES)
+all: $(MOFILES) $(MOCONVERTED)
 
-first_time:
+PO_INPUTLIST = \
+	$(wildcard ../*.c) \
+	../if_perl.xs \
+	../GvimExt/gvimext.cpp \
+	../errors.h \
+	../globals.h \
+	../if_py_both.h \
+	../vim.h \
+	gvim.desktop.in \
+	vim.desktop.in
+
+PO_VIM_INPUTLIST = \
+	../../runtime/optwin.vim
+
+PO_VIM_JSLIST = \
+	optwin.js
+
+first_time: $(PO_INPUTLIST) $(PO_VIM_INPUTLIST)
+	$(VIM) -u NONE --not-a-term -S tojavascript.vim $(LANGUAGE).pot $(PO_VIM_INPUTLIST)
 	$(XGETTEXT) --default-domain=$(LANGUAGE) \
-		--add-comments --keyword=_ --keyword=N_ $(wildcard ../*.c) ../if_perl.xs $(wildcard ../globals.h)
+		--add-comments --keyword=_ --keyword=N_ --keyword=NGETTEXT:1,2 $(PO_INPUTLIST) $(PO_VIM_JSLIST)
+	$(VIM) -u NONE --not-a-term -S fixfilenames.vim $(LANGUAGE).pot $(PO_VIM_INPUTLIST)
+	$(RM) *.js
 
-$(LANGUAGES):
+$(PACKAGE).pot: $(PO_INPUTLIST) $(PO_VIM_INPUTLIST)
+	$(VIM) -u NONE --not-a-term -S tojavascript.vim $(PACKAGE).pot $(PO_VIM_INPUTLIST)
 	$(XGETTEXT) --default-domain=$(PACKAGE) \
-		--add-comments --keyword=_ --keyword=N_ $(wildcard ../*.c) ../if_perl.xs $(wildcard ../globals.h)
+		--add-comments --keyword=_ --keyword=N_ --keyword=NGETTEXT:1,2 $(PO_INPUTLIST) $(PO_VIM_JSLIST)
 	$(MV) $(PACKAGE).po $(PACKAGE).pot
+	$(VIM) -u NONE --not-a-term -S fixfilenames.vim $(PACKAGE).pot $(PO_VIM_INPUTLIST)
+	$(RM) *.js
+
+# Don't add a dependency here, we only want to update the .po files manually
+$(LANGUAGES):
+	@$(MAKE) -f Make_cyg.mak $(PACKAGE).pot GETTEXT_PATH=$(GETTEXT_PATH)
 	$(CP) $@.po $@.po.orig
 	$(MV) $@.po $@.po.old
 	$(MSGMERGE) $@.po.old $(PACKAGE).pot -o $@.po
 	$(RM) $@.po.old
 
-install: $(MOFILES)
+install: $(MOFILES) $(MOCONVERTED)
 	for TARGET in $(LANGUAGES); do \
 		$(MKD) $(VIMRUNTIME)/lang/$$TARGET/LC_MESSAGES ; \
 		$(CP) $$TARGET.mo $(VIMRUNTIME)/lang/$$TARGET/LC_MESSAGES/$(PACKAGE).mo ; \
 	done
 
+install-all: install
+
 clean:
 	$(RM) *.mo
 	$(RM) *.pot
-
-

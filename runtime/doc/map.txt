@@ -1,4 +1,4 @@
-*map.txt*       For Vim version 7.4.  Last change: 2014 Dec 08
+*map.txt*       For Vim version 8.2.  Last change: 2020 Dec 10
 
 
 		  VIM REFERENCE MANUAL    by Bram Moolenaar
@@ -20,7 +20,8 @@ manual.
    1.8 Examples				|map-examples|
    1.9 Using mappings			|map-typing|
    1.10 Mapping alt-keys		|:map-alt-keys|
-   1.11 Mapping an operator		|:map-operator|
+   1.11 Mapping in modifyOtherKeys mode	|modifyOtherKeys|
+   1.12 Mapping an operator		|:map-operator|
 2. Abbreviations		|abbreviations|
 3. Local mappings and functions	|script-local|
 4. User-defined commands	|user-commands|
@@ -29,7 +30,7 @@ manual.
 1. Key mapping				*key-mapping* *mapping* *macro*
 
 Key mapping is used to change the meaning of typed keys.  The most common use
-is to define a sequence commands for a function key.  Example: >
+is to define a sequence of commands for a function key.  Example: >
 
 	:map <F2> a<C-R>=strftime("%c")<CR><Esc>
 
@@ -53,8 +54,9 @@ modes.
 :om[ap]	{lhs} {rhs}		|mapmode-o|		*:om* *:omap*
 :map!	{lhs} {rhs}		|mapmode-ic|		*:map!*
 :im[ap]	{lhs} {rhs}		|mapmode-i|		*:im* *:imap*
-:lm[ap]	{lhs} {rhs}		|mapmode-l|		*:lm* *:lmap*
+:lm[ap]	{lhs} {rhs}		|mapmode-l|		*:lm* *:lma* *:lmap*
 :cm[ap]	{lhs} {rhs}		|mapmode-c|		*:cm* *:cmap*
+:tma[p]	{lhs} {rhs}		|mapmode-t|		*:tma* *:tmap*
 			Map the key sequence {lhs} to {rhs} for the modes
 			where the map command applies.  The result, including
 			{rhs}, is then further scanned for mappings.  This
@@ -65,16 +67,17 @@ modes.
 :nn[oremap] {lhs} {rhs}		|mapmode-n|	*:nn*  *:nnoremap*
 :vn[oremap] {lhs} {rhs}		|mapmode-v|	*:vn*  *:vnoremap*
 :xn[oremap] {lhs} {rhs}		|mapmode-x|	*:xn*  *:xnoremap*
-:snor[emap] {lhs} {rhs}		|mapmode-s|	*:snor* *:snoremap*
+:snor[emap] {lhs} {rhs}		|mapmode-s|	*:snor* *:snore* *:snoremap*
 :ono[remap] {lhs} {rhs}		|mapmode-o|	*:ono* *:onoremap*
 :no[remap]! {lhs} {rhs}		|mapmode-ic|	*:no!* *:noremap!*
-:ino[remap] {lhs} {rhs}		|mapmode-i|	*:ino* *:inoremap*
+:ino[remap] {lhs} {rhs}		|mapmode-i|	*:ino* *:inor* *:inoremap*
 :ln[oremap] {lhs} {rhs}		|mapmode-l|	*:ln*  *:lnoremap*
-:cno[remap] {lhs} {rhs}		|mapmode-c|	*:cno* *:cnoremap*
+:cno[remap] {lhs} {rhs}		|mapmode-c|	*:cno* *:cnor* *:cnoremap*
+:tno[remap] {lhs} {rhs}		|mapmode-t|	*:tno* *:tnoremap*
 			Map the key sequence {lhs} to {rhs} for the modes
 			where the map command applies.  Disallow mapping of
 			{rhs}, to avoid nested and recursive mappings.  Often
-			used to redefine a command.  {not in Vi}
+			used to redefine a command.
 
 
 :unm[ap]  {lhs}			|mapmode-nvo|		*:unm*  *:unmap*
@@ -86,7 +89,8 @@ modes.
 :unm[ap]! {lhs}			|mapmode-ic|		*:unm!* *:unmap!*
 :iu[nmap] {lhs}			|mapmode-i|		*:iu*   *:iunmap*
 :lu[nmap] {lhs}			|mapmode-l|		*:lu*   *:lunmap*
-:cu[nmap] {lhs}			|mapmode-c|		*:cu*   *:cunmap*
+:cu[nmap] {lhs}			|mapmode-c|		*:cu*   *:cun* *:cunmap*
+:tunma[p] {lhs}			|mapmode-t|		*:tunma* *:tunmap*
 			Remove the mapping of {lhs} for the modes where the
 			map command applies.  The mapping may remain defined
 			for other modes where it applies.
@@ -105,8 +109,9 @@ modes.
 :imapc[lear]			|mapmode-i|		*:imapc*  *:imapclear*
 :lmapc[lear]			|mapmode-l|		*:lmapc*  *:lmapclear*
 :cmapc[lear]			|mapmode-c|		*:cmapc*  *:cmapclear*
+:tmapc[lear]			|mapmode-t|		*:tmapc*  *:tmapclear*
 			Remove ALL mappings for the modes where the map
-			command applies.  {not in Vi}
+			command applies.
 			Use the <buffer> argument to remove buffer-local
 			mappings |:map-<buffer>|
 			Warning: This also removes the default mappings.
@@ -121,6 +126,7 @@ modes.
 :im[ap]				|mapmode-i|
 :lm[ap]				|mapmode-l|
 :cm[ap]				|mapmode-c|
+:tma[p]				|mapmode-t|
 			List all key mappings for the modes where the map
 			command applies.  Note that ":map" and ":map!" are
 			used most often, because they include the other modes.
@@ -135,9 +141,9 @@ modes.
 :im[ap] {lhs}			|mapmode-i|		*:imap_l*
 :lm[ap] {lhs}			|mapmode-l|		*:lmap_l*
 :cm[ap] {lhs}			|mapmode-c|		*:cmap_l*
+:tma[p] {lhs}			|mapmode-t|		*:tmap_l*
 			List the key mappings for the key sequences starting
 			with {lhs} in the modes where the map command applies.
-			{not in Vi}
 
 These commands are used to map a key or key sequence to a string of
 characters.  You can use this to put command sequences under function keys,
@@ -154,7 +160,6 @@ decide if "aa" or "aaa" should be mapped.  This means that after typing "aa"
 that mapping won't get expanded yet, Vim is waiting for another character.
 If you type a space, then "foo" will get inserted, plus the space.  If you
 type "a", then "bar" will get inserted.
-{Vi does not allow ambiguous mappings}
 
 
 1.2 SPECIAL ARGUMENTS					*:map-arguments*
@@ -185,7 +190,13 @@ that starts with ",".  Then you need to type another character for Vim to know
 whether to use the "," mapping or the longer one.  To avoid this add the
 <nowait> argument.  Then the mapping will be used when it matches, Vim does
 not wait for more characters to be typed.  However, if the characters were
-already type they are used.
+already typed they are used.
+Note that this works when the <nowait> mapping fully matches and is found
+before any partial matches.  This works when:
+- There is only one matching buffer-local mapping, since these are always
+  found before global mappings.
+- There is another buffer-local mapping that partly matches, but it is
+  defined earlier (last defined mapping is found first).
 
 						*:map-<silent>* *:map-silent*
 To define a mapping which will not be echoed on the command line, add
@@ -241,6 +252,31 @@ For abbreviations |v:char| is set to the character that was typed to trigger
 the abbreviation.  You can use this to decide how to expand the {lhs}.  You
 should not either insert or change the v:char.
 
+In case you want the mapping to not do anything, you can have the expression
+evaluate to an empty string.  If something changed that requires Vim to
+go through the main loop (e.g. to update the display), return "\<Ignore>".
+This is similar to "nothing" but makes Vim return from the loop that waits for
+input. Example: >
+	func s:OpenPopup()
+	  call popup_create(... arguments ...)
+	  return "\<Ignore>"
+	endfunc
+	nnoremap <expr> <F3> <Sid>OpenPopup()
+
+Also, keep in mind that the expression may be evaluated when looking for
+typeahead, before the previous command has been executed.  For example: >
+	func StoreColumn()
+	  let g:column = col('.')
+	  return 'x'
+	endfunc
+	nnoremap <expr> x StoreColumn()
+	nmap ! f!x
+You will notice that g:column has the value from before executing "fx",
+because "z" is evaluated before "fx" is executed.
+This can be solved by inserting <Ignore> before the character that is
+expression-mapped: >
+	nmap ! f!<Ignore>x
+
 Be very careful about side effects!  The expression is evaluated while
 obtaining characters, you may very well make the command dysfunctional.
 For this reason the following is blocked:
@@ -249,7 +285,7 @@ For this reason the following is blocked:
 - The |:normal| command.
 - Moving the cursor is allowed, but it is restored afterwards.
 If you want the mapping to do any of these let the returned characters do
-that.
+that, or use a |<Cmd>| mapping instead.
 
 You can use getchar(), it consumes typeahead if there is any. E.g., if you
 have these mappings: >
@@ -278,15 +314,45 @@ Here is an example that inserts a list number that increases: >
 CTRL-L inserts the next number, CTRL-R resets the count.  CTRL-R returns an
 empty string, so that nothing is inserted.
 
-Note that there are some tricks to make special keys work and escape CSI bytes
-in the text.  The |:map| command also does this, thus you must avoid that it
-is done twice.  This does not work: >
-	:imap <expr> <F3> "<Char-0x611B>"
-Because the <Char- sequence is escaped for being a |:imap| argument and then
-again for using <expr>.  This does work: >
-	:imap <expr> <F3> "\u611B"
-Using 0x80 as a single byte before other text does not work, it will be seen
-as a special key.
+Note that using 0x80 as a single byte before other text does not work, it will
+be seen as a special key.
+
+						*<Cmd>* *:map-cmd*
+The special text <Cmd> begins a "command mapping", it executes the command
+directly without changing modes.  Where you might use ":...<CR>" in the
+{rhs} of a mapping, you can instead use "<Cmd>...<CR>".
+Example: >
+	noremap x <Cmd>echo mode(1)<CR>
+<
+This is more flexible than `:<C-U>` in Visual and Operator-pending mode, or
+`<C-O>:` in Insert mode, because the commands are executed directly in the
+current mode, instead of always going to Normal mode.  Visual mode is
+preserved, so tricks with |gv| are not needed.  Commands can be invoked
+directly in Command-line mode (which would otherwise require timer hacks).
+Example of using <Cmd> halfway Insert mode: >
+	nnoremap <F3> aText <Cmd>echo mode(1)<CR> Added<Esc>
+
+Unlike <expr> mappings, there are no special restrictions on the <Cmd>
+command: it is executed as if an (unrestricted) |autocommand| was invoked.
+
+Note:
+- Because <Cmd> avoids mode-changes it does not trigger |CmdlineEnter| and
+  |CmdlineLeave| events, because no user interaction is expected.
+- For the same reason, |keycodes| like <C-R><C-W> are interpreted as plain,
+  unmapped keys.
+- The command is not echo'ed, no need for <silent>.
+- In Visual mode  you can use `line('v')` and `col('v')` to get one end of the
+  Visual area, the cursor is at the other end.
+- In Select mode, |:map| and |:vmap| command mappings are executed in
+  Visual mode.  Use |:smap| to handle Select mode differently.
+
+							*E1135* *E1136*
+<Cmd> commands must terminate, that is, they must be followed by <CR> in the
+{rhs} of the mapping definition.  |Command-line| mode is never entered.
+
+							*E1137*
+<Cmd> commands can have only normal characters and cannot contain special
+characters like function keys.
 
 
 1.3 MAPPING AND MODES					*:map-modes*
@@ -318,6 +384,7 @@ Overview of which map command works in which mode.  More details below.
 :imap  :inoremap :iunmap    Insert
 :lmap  :lnoremap :lunmap    Insert, Command-line, Lang-Arg
 :cmap  :cnoremap :cunmap    Command-line
+:tmap  :tnoremap :tunmap    Terminal-Job
 
 
     COMMANDS				      MODES ~
@@ -352,16 +419,23 @@ Some commands work both in Insert mode and Command-line mode, some not:
 :cmap  :cnoremap  :cunmap  :cmapclear	     -	       yes	   -
 :lmap  :lnoremap  :lunmap  :lmapclear	    yes*       yes*	  yes*
 
+* If 'iminsert' is 1, see |language-mapping| below.
+
 The original Vi did not have separate mappings for
 Normal/Visual/Operator-pending mode and for Insert/Command-line mode.
 Therefore the ":map" and ":map!" commands enter and display mappings for
 several modes.  In Vim you can use the ":nmap", ":vmap", ":omap", ":cmap" and
 ":imap" commands to enter mappings for each mode separately.
 
+							*mapmode-t*
+The terminal mappings are used in a terminal window, when typing keys for the
+job running in the terminal.  See |terminal-typing|.
+
 							*omap-info*
 Operator-pending mappings can be used to define a movement command that can be
-used with any operator.  Simple example: ":omap { w" makes "y{" work like "yw"
-and "d{" like "dw".
+used with any operator.  Simple example: >
+	:omap { w
+makes "y{" work like "yw" and "d{" like "dw".
 
 To ignore the starting cursor position and select different text, you can have
 the omap start Visual mode to select the text to be operated upon.  Example
@@ -372,9 +446,11 @@ Normal mode commands find the first '(' character and select the first word
 before it.  That usually is the function name.
 
 To enter a mapping for Normal and Visual mode, but not Operator-pending mode,
-first define it for all three modes, then unmap it for Operator-pending mode:
+first define it for all three modes, then unmap it for
+Operator-pending mode: >
 	:map    xx something-difficult
 	:ounmap xx
+
 Likewise for a mapping for Visual and Operator-pending mode or Normal and
 Operator-pending mode.
 
@@ -418,6 +494,7 @@ When listing mappings the characters in the first two columns are:
 	i	Insert
 	l	":lmap" mappings for Insert, Command-line and Lang-Arg
 	c	Command-line
+	t	Terminal-Job
 
 Just before the {rhs} a special character can appear:
 	*	indicates that it is not remappable
@@ -430,6 +507,9 @@ with a space.
 
 Note: When using mappings for Visual mode, you can use the "'<" mark, which
 is the start of the last selected Visual area in the current buffer |'<|.
+
+The |:filter| command can be used to select what mappings to list.  The
+pattern is matched against the {lhs} and {rhs} in the raw form.
 
 							*:map-verbose*
 When 'verbose' is non-zero, listing a key map will also display where it was
@@ -483,7 +563,7 @@ internal code is written to the script file.
 
 
 1.6 SPECIAL CHARACTERS					*:map-special-chars*
-							*map_backslash*
+						*map_backslash* *map-backslash*
 Note that only CTRL-V is mentioned here as a special character for mappings
 and abbreviations.  When 'cpoptions' does not contain 'B', a backslash can
 also be used like CTRL-V.  The <> notation can be fully used then |<>|.  But
@@ -494,21 +574,21 @@ To map a backslash, or use a backslash literally in the {rhs}, the special
 sequence "<Bslash>" can be used.  This avoids the need to double backslashes
 when using nested mappings.
 
-							*map_CTRL-C*
+						*map_CTRL-C* *map-CTRL-C*
 Using CTRL-C in the {lhs} is possible, but it will only work when Vim is
 waiting for a key, not when Vim is busy with something.  When Vim is busy
 CTRL-C interrupts/breaks the command.
 When using the GUI version on MS-Windows CTRL-C can be mapped to allow a Copy
 command to the clipboard.  Use CTRL-Break to interrupt Vim.
 
-							*map_space_in_lhs*
+					*map_space_in_lhs* *map-space_in_lhs*
 To include a space in {lhs} precede it with a CTRL-V (type two CTRL-Vs for
 each space).
-							*map_space_in_rhs*
+					*map_space_in_rhs* *map-space_in_rhs*
 If you want a {rhs} that starts with a space, use "<Space>".  To be fully Vi
 compatible (but unreadable) don't use the |<>| notation, precede {rhs} with a
 single CTRL-V (you have to type CTRL-V two times).
-							*map_empty_rhs*
+						*map_empty_rhs* *map-empty-rhs*
 You can create an empty {rhs} by typing nothing after a single CTRL-V (you
 have to type CTRL-V two times).  Unfortunately, you cannot do this in a vimrc
 file.
@@ -527,9 +607,9 @@ scenario: >
 	:imap <M-C> foo
 	:set encoding=utf-8
 The mapping for <M-C> is defined with the latin1 encoding, resulting in a 0xc3
-byte.  If you type the character แ (0xe1 <M-a>) in UTF-8 encoding this is the
+byte.  If you type the character รก (0xe1 <M-a>) in UTF-8 encoding this is the
 two bytes 0xc3 0xa1.  You don't want the 0xc3 byte to be mapped then or
-otherwise it would be impossible to type the แ character.
+otherwise it would be impossible to type the รก character.
 
 					*<Leader>* *mapleader*
 To define a mapping which uses the "mapleader" variable, the special string
@@ -576,14 +656,15 @@ construct can be used:
 	<Char-033>	character 27
 	<Char-0x7f>	character 127
 	<S-Char-114>    character 114 ('r') shifted ('R')
-This is useful to specify a (multi-byte) character in a 'keymap' file.
+This is useful to specify a (multibyte) character in a 'keymap' file.
 Upper and lowercase differences are ignored.
 
 							*map-comments*
 It is not possible to put a comment after these commands, because the '"'
-character is considered to be part of the {lhs} or {rhs}.
+character is considered to be part of the {lhs} or {rhs}. However, one can
+use |", since this starts a new, empty command with a comment.
 
-							*map_bar*
+							*map_bar* *map-bar*
 Since the '|' character is used to separate a map command from the next
 command, you will have to do something special to include  a '|' in {rhs}.
 There are three methods:
@@ -601,7 +682,7 @@ When 'b' is present in 'cpoptions', "\|" will be recognized as a mapping
 ending in a '\' and then another command.  This is Vi compatible, but
 illogical when compared to other commands.
 
-							*map_return*
+						*map_return* *map-return*
 When you have a mapping that contains an Ex command, you need to put a line
 terminator after it to have it executed.  The use of <CR> is recommended for
 this (see |<>|).  Example: >
@@ -678,7 +759,7 @@ option).  After that it assumes that the 'q' is to be interpreted as such.  If
 you type slowly, or your system is slow, reset the 'timeout' option.  Then you
 might want to set the 'ttimeout' option.
 
-                            				*map-precedence*
+			      				*map-precedence*
 Buffer-local mappings (defined using |:map-<buffer>|) take precedence over
 global mappings.  When a buffer-local mapping is the same as a global mapping,
 Vim will use the buffer-local mapping.  In addition, Vim will use a complete
@@ -760,6 +841,9 @@ In the GUI Vim handles the Alt key itself, thus mapping keys with ALT should
 always work.  But in a terminal Vim gets a sequence of bytes and has to figure
 out whether ALT was pressed or not.
 
+If the terminal supports the modifyOtherKeys mode and it has been enabled,
+then Vim can recognize more key combinations, see |modifyOtherKeys| below.
+
 By default Vim assumes that pressing the ALT key sets the 8th bit of a typed
 character.  Most decent terminals can work that way, such as xterm, aterm and
 rxvt.  If your <A-k> mappings don't work it might be that the terminal is
@@ -794,13 +878,52 @@ Bear in mind that convert-meta has been reported to have troubles when used in
 UTF-8 locales.  On terminals like xterm, the "metaSendsEscape" resource can be
 toggled on the fly through the "Main Options" menu, by pressing Ctrl-LeftClick
 on the terminal; that's a good last resource in case you want to send ESC when
-using other applications but not when inside VIM.
+using other applications but not when inside Vim.
 
 
-1.11 MAPPING AN OPERATOR				*:map-operator*
+1.11 MAPPING IN modifyOtherKeys mode			*modifyOtherKeys*
+
+Xterm and a few other terminals can be put in a mode where keys with modifiers
+are sent with a special escape code.  Vim recognizes these codes and can then
+make a difference between CTRL-H and Backspace, even when Backspace sends the
+character 8.  And many more special keys.
+
+For xterm modifyOtherKeys is enabled in the builtin termcap entry.  If this is
+not used you can enable modifyOtherKeys with these lines in your vimrc: >
+      let &t_TI = "\<Esc>[>4;2m"
+      let &t_TE = "\<Esc>[>4;m"
+
+In case the modifyOtherKeys mode causes problems you can disable it: >
+      let &t_TI = ""
+      let &t_TE = ""
+It does not take effect immediately.  To have this work without restarting Vim
+execute a shell command, e.g.: `!ls`  Or put the lines in your |vimrc|.
+
+When modifyOtherKeys is enabled you can map <C-[> and <C-S-{>: >
+	imap <C-[> [[[
+	imap <C-{> {{{
+Without modifyOtherKeys <C-[> and <C-{> are indistinguishable from Esc.
+Note that <C-{> is used and not <C-S-[> or <C-S-{>.  This works on most
+keyboards.  Similarly, <C-}> is used instead of <C-S-]> or <C-S-}> and
+<C-|> instead of <C-S-\> or <C-S-|>.  Note that '|' has a special meaning in a
+mapping, see |map-bar|.
+
+WARNING: if you map <C-[> you may very well break any key codes that start
+with Esc.  Make sure it comes AFTER other mappings.
+
+A known side effect is that in Insert mode the raw escape sequence is inserted
+after the CTRL-V key.  This can be used to check whether modifyOtherKeys is
+enabled: In Insert mode type CTRL-SHIFT-V CTRL-V, if you get one byte then
+modifyOtherKeys is off, if you get <1b>27;5;118~ then it is on.
+
+When the 'esckeys' option is off, then modifyOtherKeys will be disabled in
+Insert mode to avoid every key with a modifier causing Insert mode to end.
+
+
+1.12 MAPPING AN OPERATOR				*:map-operator*
 
 An operator is used before a {motion} command.  To define your own operator
-you must create mapping that first sets the 'operatorfunc' option and then
+you must create a mapping that first sets the 'operatorfunc' option and then
 invoke the |g@| operator.  After the user types the {motion} command the
 specified function will be called.
 
@@ -820,35 +943,47 @@ g@{motion}		Call the function set by the 'operatorfunc' option.
 
 Here is an example that counts the number of spaces with <F4>: >
 
-	nmap <silent> <F4> :set opfunc=CountSpaces<CR>g@
-	vmap <silent> <F4> :<C-U>call CountSpaces(visualmode(), 1)<CR>
+	nnoremap <expr> <F4> CountSpaces()
+	xnoremap <expr> <F4> CountSpaces()
+	" doubling <F4> works on a line
+	nnoremap <expr> <F4><F4> CountSpaces() .. '_'
 
-	function! CountSpaces(type, ...)
+	function CountSpaces(type = '') abort
+	  if a:type == ''
+	    set opfunc=CountSpaces
+	    return 'g@'
+ 	  endif
+
 	  let sel_save = &selection
-	  let &selection = "inclusive"
-	  let reg_save = @@
+	  let reg_save = getreginfo('"')
+	  let cb_save = &clipboard
+	  let visual_marks_save = [getpos("'<"), getpos("'>")]
 
-	  if a:0  " Invoked from Visual mode, use gv command.
-	    silent exe "normal! gvy"
-	  elseif a:type == 'line'
-	    silent exe "normal! '[V']y"
-	  else
-	    silent exe "normal! `[v`]y"
-	  endif
-
-	  echomsg strlen(substitute(@@, '[^ ]', '', 'g'))
-
-	  let &selection = sel_save
-	  let @@ = reg_save
+	  try
+	    set clipboard= selection=inclusive
+	    let commands = #{line: "'[V']y", char: "`[v`]y", block: "`[\<c-v>`]y"}
+	    silent exe 'noautocmd keepjumps normal! ' .. get(commands, a:type, '')
+	    echom getreg('"')->count(' ')
+	  finally
+	    call setreg('"', reg_save)
+	    call setpos("'<", visual_marks_save[0])
+	    call setpos("'>", visual_marks_save[1])
+	    let &clipboard = cb_save
+	    let &selection = sel_save
+	  endtry
 	endfunction
+
+An <expr> mapping is used to be able to fetch any prefixed count and register.
+This also avoids using a command line, which would trigger CmdlineEnter and
+CmdlineLeave autocommands.
 
 Note that the 'selection' option is temporarily set to "inclusive" to be able
 to yank exactly the right text by using Visual mode from the '[ to the ']
 mark.
 
-Also note that there is a separate mapping for Visual mode.  It removes the
-"'<,'>" range that ":" inserts in Visual mode and invokes the function with
-visualmode() and an extra argument.
+Also note that the 'clipboard' option is temporarily emptied to avoid
+clobbering the `"*` or `"+` registers, if its value contains the item `unnamed`
+or `unnamedplus`.
 
 ==============================================================================
 2. Abbreviations			*abbreviations* *Abbreviations*
@@ -901,7 +1036,9 @@ an additional rule:
 full-id	  In front of the match is a non-keyword character, or this is where
 	  the line or insertion starts.  Exception: When the abbreviation is
 	  only one character, it is not recognized if there is a non-keyword
-	  character in front of it, other than a space or a tab.
+	  character in front of it, other than a space or a tab. However, for
+	  the command line "'<,'>" (or any other marks) is ignored, as if the
+	  command line starts after it.
 
 end-id	  In front of the match is a keyword character, or a space or a tab,
 	  or this is where the line or insertion starts.
@@ -987,7 +1124,8 @@ See |:verbose-cmd| for more information.
 			See |:map-<buffer>| for the optional <buffer> argument.
 
 						*:una* *:unabbreviate*
-:una[bbreviate] {lhs}	Remove abbreviation for {lhs} from the list.  If none
+:una[bbreviate] [<buffer>] {lhs}
+			Remove abbreviation for {lhs} from the list.  If none
 			is found, remove abbreviations in which {lhs} matches
 			with the {rhs}.  This is done so that you can even
 			remove abbreviations after expansion.  To avoid
@@ -995,45 +1133,42 @@ See |:verbose-cmd| for more information.
 
 						*:norea* *:noreabbrev*
 :norea[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
-			same as ":ab", but no remapping for this {rhs} {not
-			in Vi}
+			Same as ":ab", but no remapping for this {rhs}.
 
-						*:ca* *:cabbrev*
+						*:ca* *:cab* *:cabbrev*
 :ca[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
-			same as ":ab", but for Command-line mode only.  {not
-			in Vi}
+			Same as ":ab", but for Command-line mode only.
 
 						*:cuna* *:cunabbrev*
-:cuna[bbrev] {lhs}	same as ":una", but for Command-line mode only.  {not
-			in Vi}
+:cuna[bbrev] [<buffer>] {lhs}
+			Same as ":una", but for Command-line mode only.
 
 						*:cnorea* *:cnoreabbrev*
 :cnorea[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
 			same as ":ab", but for Command-line mode only and no
-			remapping for this {rhs} {not in Vi}
+			remapping for this {rhs}
 
 						*:ia* *:iabbrev*
 :ia[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
-			same as ":ab", but for Insert mode only.  {not in Vi}
+			Same as ":ab", but for Insert mode only.
 
 						*:iuna* *:iunabbrev*
-:iuna[bbrev] {lhs}	same as ":una", but for insert mode only.  {not in
-			Vi}
+:iuna[bbrev] [<buffer>] {lhs}
+			Same as ":una", but for insert mode only.
 
 						*:inorea* *:inoreabbrev*
 :inorea[bbrev] [<expr>] [<buffer>] [lhs] [rhs]
-			same as ":ab", but for Insert mode only and no
-			remapping for this {rhs} {not in Vi}
+			Same as ":ab", but for Insert mode only and no
+			remapping for this {rhs}.
 
 							*:abc* *:abclear*
-:abc[lear] [<buffer>]	Remove all abbreviations.  {not in Vi}
+:abc[lear] [<buffer>]	Remove all abbreviations.
 
 							*:iabc* *:iabclear*
-:iabc[lear] [<buffer>]	Remove all abbreviations for Insert mode.  {not in Vi}
+:iabc[lear] [<buffer>]	Remove all abbreviations for Insert mode.
 
 							*:cabc* *:cabclear*
-:cabc[lear] [<buffer>]	Remove all abbreviations for Command-line mode.  {not
-			in Vi}
+:cabc[lear] [<buffer>]	Remove all abbreviations for Command-line mode.
 
 							*using_CTRL-V*
 It is possible to use special characters in the rhs of an abbreviation.
@@ -1112,13 +1247,17 @@ When executing an autocommand or a user command, it will run in the context of
 the script it was defined in.  This makes it possible that the command calls a
 local function or uses a local mapping.
 
+In case the value is used in a context where <SID> cannot be correctly
+expanded, use the expand() function: >
+	let &includexpr = expand('<SID>') .. 'My_includeexpr()'
+
 Otherwise, using "<SID>" outside of a script context is an error.
 
 If you need to get the script number to use in a complicated script, you can
 use this function: >
-	function s:SID()
-	  return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
-	endfun
+	func s:ScriptNumber()
+	  return matchstr(expand('<SID>'), '<SNR>\zs\d\+\ze_')
+	endfunc
 
 The "<SNR>" will be shown when listing functions and mappings.  This is useful
 to find out what they are defined to.
@@ -1126,8 +1265,7 @@ to find out what they are defined to.
 The |:scriptnames| command can be used to see which scripts have been sourced
 and what their <SNR> number is.
 
-This is all {not in Vi} and {not available when compiled without the |+eval|
-feature}.
+This is all {not available when compiled without the |+eval| feature}.
 
 ==============================================================================
 4. User-defined commands				*user-commands*
@@ -1172,11 +1310,16 @@ scripts.
 
 :com[mand]						*:com* *:command*
 			List all user-defined commands.  When listing commands,
-			the characters in the first two columns are
+			the characters in the first columns are:
 			    !	Command has the -bang attribute
 			    "	Command has the -register attribute
+			    |   Command has the -bar attribute
 			    b	Command is local to current buffer
 			(see below for details on attributes)
+			The list can be filtered on command name with
+			|:filter|, e.g., to list all commands with "Pyth" in
+			the name: >
+				filter Pyth command
 
 :com[mand] {cmd}	List the user-defined commands that start with {cmd}
 
@@ -1192,12 +1335,16 @@ last defined. Example: >
 See |:verbose-cmd| for more information.
 
 							*E174* *E182*
-:com[mand][!] [{attr}...] {cmd} {rep}
+:com[mand][!] [{attr}...] {cmd} {repl}
 			Define a user command.  The name of the command is
-			{cmd} and its replacement text is {rep}.  The command's
-			attributes (see below) are {attr}.  If the command
-			already exists, an error is reported, unless a ! is
-			specified, in which case the command is redefined.
+			{cmd} and its replacement text is {repl}.  The
+			command's attributes (see below) are {attr}.  If the
+			command already exists, an error is reported, unless a
+			! is specified, in which case the command is
+			redefined.  There is one exception: When sourcing a
+			script again, a command that was previously defined in
+			that script will be silently replaced.
+
 
 :delc[ommand] {cmd}				*:delc* *:delcommand* *E184*
 			Delete the user-defined command {cmd}.
@@ -1205,7 +1352,8 @@ See |:verbose-cmd| for more information.
 :comc[lear]						*:comc* *:comclear*
 			Delete all user-defined commands.
 
-Command attributes
+
+Command attributes ~
 
 User-defined commands are treated by Vim just like any other Ex commands.  They
 can have arguments, or have a range specified.  Arguments are subject to
@@ -1216,14 +1364,15 @@ There are a number of attributes, split into four categories: argument
 handling, completion behavior, range handling, and special cases.  The
 attributes are described below, by category.
 
-Argument handling				*E175* *E176* *:command-nargs*
 
+Argument handling ~
+						*E175* *E176* *:command-nargs*
 By default, a user defined command will take no arguments (and an error is
 reported if any are supplied).  However, it is possible to specify that the
 command can take arguments, using the -nargs attribute.  Valid cases are:
 
 	-nargs=0    No arguments are allowed (the default)
-	-nargs=1    Exactly one argument is required, it includes spaces 
+	-nargs=1    Exactly one argument is required, it includes spaces
 	-nargs=*    Any number of arguments are allowed (0, 1, or many),
 		    separated by white space
 	-nargs=?    0 or 1 arguments are allowed
@@ -1246,12 +1395,15 @@ defined, not where it is invoked!  Example:
 Executing script2.vim will result in "None" being echoed.  Not what you
 intended!  Calling a function may be an alternative.
 
-Completion behavior				*:command-completion* *E179*
-					*E180* *E181* *:command-complete*
+
+Completion behavior ~
+				*:command-completion* *E179* *E180* *E181*
+				*:command-complete*
 By default, the arguments of user defined commands do not undergo completion.
 However, by specifying one or the other of the following attributes, argument
 completion can be enabled:
 
+	-complete=arglist	file names in argument list
 	-complete=augroup	autocmd groups
 	-complete=buffer	buffer names
 	-complete=behave	:behave suboptions
@@ -1271,9 +1423,12 @@ completion can be enabled:
 	-complete=highlight	highlight groups
 	-complete=history	:history suboptions
 	-complete=locale	locale names (as output of locale -a)
+	-complete=mapclear	buffer argument
 	-complete=mapping	mapping name
 	-complete=menu		menus
+	-complete=messages	|:messages| suboptions
 	-complete=option	options
+	-complete=packadd	optional package |pack-add| names
 	-complete=shellcmd	Shell command
 	-complete=sign		|:sign| suboptions
 	-complete=syntax	syntax file names |'syntax'|
@@ -1288,9 +1443,9 @@ completion can be enabled:
 Note: That some completion methods might expand environment variables.
 
 
-Custom completion			*:command-completion-custom*
-					*:command-completion-customlist*
-					*E467* *E468*
+Custom completion ~
+				*:command-completion-custom*
+				*:command-completion-customlist* *E467* *E468*
 It is possible to define customized completion schemes via the "custom,{func}"
 or the "customlist,{func}" completion argument.  The {func} part should be a
 function with the following signature: >
@@ -1335,8 +1490,8 @@ the 'path' option: >
 This example does not work for file names with spaces!
 
 
-Range handling				*E177* *E178* *:command-range*
-							*:command-count*
+Range handling ~
+				*E177* *E178* *:command-range* *:command-count*
 By default, user-defined commands do not accept a line number range.  However,
 it is possible to specify that the command does take a range (the -range
 attribute), or that it takes an arbitrary count value, either in the line
@@ -1353,25 +1508,31 @@ Possible attributes are:
 		    number.
 	-count=N    A count (default N) which is specified either in the line
 		    number position, or as an initial argument (like |:Next|).
-		    Specifying -count (without a default) acts like -count=0
+	-count	    acts like -count=0
 
 Note that -range=N and -count=N are mutually exclusive - only one should be
 specified.
 
-					*E889* *:command-addr*
+					*:command-addr*
 It is possible that the special characters in the range like ., $ or % which
 by default correspond to the current line, last line and the whole buffer,
 relate to arguments, (loaded) buffers, windows or tab pages.
 
-Possible values are:
-	-addr=lines		Range of lines (this is the default)
-	-addr=arguments		Range for arguments
-	-addr=buffers		Range for buffers (also not loaded buffers)
-	-addr=loaded_buffers	Range for loaded buffers
-	-addr=windows		Range for windows
-	-addr=tabs		Range for tab pages
+Possible values are (second column is the short name used in listing):
+    -addr=lines		  	Range of lines (this is the default for -range)
+    -addr=arguments	  arg	Range for arguments
+    -addr=buffers	  buf	Range for buffers (also not loaded buffers)
+    -addr=loaded_buffers  load	Range for loaded buffers
+    -addr=windows	  win	Range for windows
+    -addr=tabs		  tab	Range for tab pages
+    -addr=quickfix	  qf	Range for quickfix entries
+    -addr=other		  ?	other kind of range; can use ".", "$" and "%"
+				as with "lines" (this is the default for
+				-count)
 
-Special cases				*:command-bang* *:command-bar*
+
+Special cases ~
+					*:command-bang* *:command-bar*
 					*:command-register* *:command-buffer*
 There are some special cases as well:
 
@@ -1389,13 +1550,14 @@ replacement text separately.
 Note that these arguments can be abbreviated, but that is a deprecated
 feature.  Use the full name for new scripts.
 
-Replacement text
 
-The replacement text for a user defined command is scanned for special escape
-sequences, using <...> notation.  Escape sequences are replaced with values
-from the entered command line, and all other text is copied unchanged.  The
-resulting string is executed as an Ex command.  To avoid the replacement use
-<lt> in place of the initial <.  Thus to include "<bang>" literally use
+Replacement text ~
+
+The replacement text {repl} for a user defined command is scanned for special
+escape sequences, using <...> notation.  Escape sequences are replaced with
+values from the entered command line, and all other text is copied unchanged.
+The resulting string is executed as an Ex command.  To avoid the replacement
+use <lt> in place of the initial <.  Thus to include "<bang>" literally use
 "<lt>bang>".
 
 The valid escape sequences are
@@ -1404,6 +1566,8 @@ The valid escape sequences are
 	<line1>	The starting line of the command range.
 						*<line2>*
 	<line2>	The final line of the command range.
+						*<range>*
+	<range> The number of items in the command range: 0, 1 or 2
 						*<count>*
 	<count>	Any count supplied (as described for the '-range'
 		and '-count' attributes).
@@ -1411,6 +1575,29 @@ The valid escape sequences are
 	<bang>	(See the '-bang' attribute) Expands to a ! if the
 		command was executed with a ! modifier, otherwise
 		expands to nothing.
+					*<mods>* *<q-mods>* *:command-modifiers*
+	<mods>  The command modifiers, if specified. Otherwise, expands to
+		nothing. Supported modifiers are |:aboveleft|, |:belowright|,
+		|:botright|, |:browse|, |:confirm|, |:hide|, |:keepalt|,
+		|:keepjumps|, |:keepmarks|, |:keeppatterns|, |:leftabove|,
+		|:lockmarks|, |:noswapfile| |:rightbelow|, |:silent|, |:tab|,
+		|:topleft|, |:verbose|, and |:vertical|.
+		Note that these are not yet supported: |:noautocmd|,
+		|:sandbox| and |:unsilent|.
+		Examples: >
+		    command! -nargs=+ -complete=file MyEdit
+				\ for f in expand(<q-args>, 0, 1) |
+				\ exe '<mods> split ' . f |
+				\ endfor
+
+		    function! SpecialEdit(files, mods)
+			for f in expand(a:files, 0, 1)
+			    exe a:mods . ' split ' . f
+			endfor
+		    endfunction
+		    command! -nargs=+ -complete=file Sedit
+				\ call SpecialEdit(<q-args>, <q-mods>)
+<
 						*<reg>* *<register>*
 	<reg>	(See the '-register' attribute) The optional register,
 		if specified.  Otherwise, expands to nothing.  <register>
@@ -1496,9 +1683,14 @@ errors and the "update" command to write modified buffers): >
 This will invoke: >
 	:call Allargs("%s/foo/bar/ge|update")
 <
+If the command is defined in Vim9 script (a script that starts with
+`:vim9script` and in a `:def` function) then {repl} will be executed as in Vim9
+script.  Thus this depends on where the command is defined, not where it is
+used.
+
 When defining a user command in a script, it will be able to call functions
 local to the script and use mappings local to the script.  When the user
 invokes the user command, it will run in the context of the script it was
 defined in.  This matters if |<SID>| is used in a command.
 
- vim:tw=78:ts=8:ft=help:norl:
+ vim:tw=78:ts=8:noet:ft=help:norl:

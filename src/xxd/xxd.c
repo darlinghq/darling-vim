@@ -35,7 +35,7 @@
  *	    xxdline().
  *  7.06.96 -i printed 'int' instead of 'char'. *blush*
  *	    added Bram's OS2 ifdefs...
- * 18.07.96 gcc -Wall @ SunOS4 is now slient.
+ * 18.07.96 gcc -Wall @ SunOS4 is now silent.
  *	    Added osver for MSDOS/DJGPP/WIN32.
  * 29.08.96 Added size_t to strncmp() for Amiga.
  * 24.03.97 Windows NT support (Phil Hanna). Clean exit for Amiga WB (Bram)
@@ -52,6 +52,8 @@
  * 2011 March  Better error handling by Florian Zumbiehl.
  * 2011 April  Formatting by Bram Moolenaar
  * 08.06.2013  Little-endian hexdump (-e) and offset (-o) by Vadim Vygonets.
+ * 11.01.2019  Add full 64/32 bit range to -o and output by Christer Jensen.
+ * 04.02.2020  Add -d for decimal offsets by Aapo Rantalainen
  *
  * (c) 1990-1998 by Juergen Weigert (jnweiger@informatik.uni-erlangen.de)
  *
@@ -70,7 +72,7 @@
 # define _CRT_SECURE_NO_DEPRECATE
 # define _CRT_NONSTDC_NO_DEPRECATE
 #endif
-#if !defined(CYGWIN) && (defined(CYGWIN32) || defined(__CYGWIN__) || defined(__CYGWIN32__))
+#if !defined(CYGWIN) && defined(__CYGWIN__)
 # define CYGWIN
 #endif
 
@@ -80,14 +82,7 @@
 #else
 # include <fcntl.h>
 #endif
-#ifdef __TSC__
-# define MSDOS
-#endif
-#if !defined(OS2) && defined(__EMX__)
-# define OS2
-#endif
-#if defined(MSDOS) || defined(WIN32) || defined(OS2) || defined(__BORLANDC__) \
-  || defined(CYGWIN)
+#if defined(WIN32) || defined(CYGWIN)
 # include <io.h>	/* for setmode() */
 #else
 # ifdef UNIX
@@ -97,14 +92,9 @@
 #include <stdlib.h>
 #include <string.h>	/* for strncmp() */
 #include <ctype.h>	/* for isalnum() */
+#include <limits.h>
 #if __MWERKS__ && !defined(BEBOX)
 # include <unix.h>	/* for fdopen() on MAC */
-#endif
-
-#if defined(__BORLANDC__) && __BORLANDC__ <= 0x0410 && !defined(fileno)
-/* Missing define and prototype grabbed from the BC 4.0 <stdio.h> */
-# define fileno(f)       ((f)->fd)
-FILE   _FAR *_Cdecl _FARFUNC fdopen(int __handle, char _FAR *__type);
 #endif
 
 
@@ -149,18 +139,10 @@ char version[] = "xxd V1.10 27oct98 by Juergen Weigert";
 #ifdef WIN32
 char osver[] = " (Win32)";
 #else
-# ifdef DJGPP
-char osver[] = " (dos 32 bit)";
-# else
-#  ifdef MSDOS
-char osver[] = " (dos 16 bit)";
-#  else
 char osver[] = "";
-#  endif
-# endif
 #endif
 
-#if defined(MSDOS) || defined(WIN32) || defined(OS2)
+#if defined(WIN32)
 # define BIN_READ(yes)  ((yes) ? "rb" : "rt")
 # define BIN_WRITE(yes) ((yes) ? "wb" : "wt")
 # define BIN_CREAT(yes) ((yes) ? (O_CREAT|O_BINARY) : O_CREAT)
@@ -203,8 +185,7 @@ char osver[] = "";
 #endif
 
 #ifndef __P
-# if defined(__STDC__) || defined(MSDOS) || defined(WIN32) || defined(OS2) \
-		|| defined(__BORLANDC__)
+# if defined(__STDC__) || defined(WIN32)
 #  define __P(a) a
 # else
 #  define __P(a) ()
@@ -220,7 +201,7 @@ static void xxdline __P((FILE *, char *, int));
 
 #define TRY_SEEK	/* attempt to use lseek, or skip forward by reading */
 #define COLS 256	/* change here, if you ever need more columns */
-#define LLEN (12 + (9*COLS-1) + COLS + 2)
+#define LLEN ((2*(int)sizeof(unsigned long)) + 4 + (9*COLS-1) + COLS + 2)
 
 char hexxa[] = "0123456789abcdef0123456789ABCDEF", *hexx = hexxa;
 
@@ -231,16 +212,19 @@ char hexxa[] = "0123456789abcdef0123456789ABCDEF", *hexx = hexxa;
 #define HEX_BITS 3		/* not hex a dump, but bits: 01111001 */
 #define HEX_LITTLEENDIAN 4
 
+#define CONDITIONAL_CAPITALIZE(c) (capitalize ? toupper((int)c) : c)
+
 static char *pname;
 
   static void
-exit_with_usage()
+exit_with_usage(void)
 {
   fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n", pname);
   fprintf(stderr, "    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n", pname);
   fprintf(stderr, "Options:\n");
   fprintf(stderr, "    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n");
   fprintf(stderr, "    -b          binary digit dump (incompatible with -ps,-i,-r). Default hex.\n");
+  fprintf(stderr, "    -C          capitalize variable names in C include file style (-i).\n");
   fprintf(stderr, "    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n");
   fprintf(stderr, "    -E          show characters in EBCDIC. Default ASCII.\n");
   fprintf(stderr, "    -e          little-endian dump (incompatible with -ps,-i,-r).\n");
@@ -252,6 +236,7 @@ exit_with_usage()
   fprintf(stderr, "    -ps         output in postscript plain hexdump style.\n");
   fprintf(stderr, "    -r          reverse operation: convert (or patch) hexdump into binary.\n");
   fprintf(stderr, "    -r -s off   revert with <off> added to file positions found in hexdump.\n");
+  fprintf(stderr, "    -d          show offset in decimal instead of hex.\n");
   fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n",
 #ifdef TRY_SEEK
 	  "[+][-]", "(or +: rel.) ");
@@ -264,8 +249,7 @@ exit_with_usage()
 }
 
   static void
-die(ret)
-  int ret;
+die(int ret)
 {
   fprintf(stderr, "%s: ", pname);
   perror(NULL);
@@ -280,10 +264,13 @@ die(ret)
  * The name is historic and came from 'undo type opt h'.
  */
   static int
-huntype(fpi, fpo, fperr, cols, hextype, base_off)
-  FILE *fpi, *fpo, *fperr;
-  int cols, hextype;
-  long base_off;
+huntype(
+  FILE *fpi,
+  FILE *fpo,
+  FILE *fperr,
+  int cols,
+  int hextype,
+  long base_off)
 {
   int c, ign_garb = 1, n1 = -1, n2 = 0, n3, p = cols;
   long have_off = 0, want_off = 0;
@@ -409,10 +396,7 @@ huntype(fpi, fpo, fperr, cols, hextype, base_off)
  * If nz is always positive, lines are never suppressed.
  */
   static void
-xxdline(fp, l, nz)
-  FILE *fp;
-  char *l;
-  int nz;
+xxdline(FILE *fp, char *l, int nz)
 {
   static char z[LLEN+1];
   static int zero_seen = 0;
@@ -472,19 +456,20 @@ static unsigned char etoa64[] =
 };
 
   int
-main(argc, argv)
-  int argc;
-  char *argv[];
+main(int argc, char *argv[])
 {
   FILE *fp, *fpo;
   int c, e, p = 0, relseek = 1, negseek = 0, revert = 0;
   int cols = 0, nonzero = 0, autoskip = 0, hextype = HEX_NORMAL;
+  int capitalize = 0, decimal_offset = 0;
   int ebcdic = 0;
   int octspergrp = -1;	/* number of octets grouped in output */
   int grplen;		/* total chars per octet group */
-  long length = -1, n = 0, seekoff = 0, displayoff = 0;
+  long length = -1, n = 0, seekoff = 0;
+  unsigned long displayoff = 0;
   static char l[LLEN+1];  /* static because it may be too big for stack */
   char *pp;
+  int addrlen = 9;
 
 #ifdef AMIGA
   /* This program doesn't work when started from the Workbench */
@@ -514,6 +499,8 @@ main(argc, argv)
       else if (!STRNCMP(pp, "-u", 2)) hexx = hexxa + 16;
       else if (!STRNCMP(pp, "-p", 2)) hextype = HEX_POSTSCRIPT;
       else if (!STRNCMP(pp, "-i", 2)) hextype = HEX_CINCLUDE;
+      else if (!STRNCMP(pp, "-C", 2)) capitalize = 1;
+      else if (!STRNCMP(pp, "-d", 2)) decimal_offset = 1;
       else if (!STRNCMP(pp, "-r", 2)) revert++;
       else if (!STRNCMP(pp, "-E", 2)) ebcdic++;
       else if (!STRNCMP(pp, "-v", 2))
@@ -523,7 +510,9 @@ main(argc, argv)
 	}
       else if (!STRNCMP(pp, "-c", 2))
 	{
-	  if (pp[2] && STRNCMP("ols", pp + 2, 3))
+	  if (pp[2] && !STRNCMP("apitalize", pp + 2, 9))
+	    capitalize = 1;
+	  else if (pp[2] && STRNCMP("ols", pp + 2, 3))
 	    cols = (int)strtol(pp + 2, NULL, 0);
 	  else
 	    {
@@ -536,7 +525,7 @@ main(argc, argv)
 	}
       else if (!STRNCMP(pp, "-g", 2))
 	{
-	  if (pp[2] && STRNCMP("roupsize", pp + 2, 8))
+	  if (pp[2] && STRNCMP("roup", pp + 2, 4))
 	    octspergrp = (int)strtol(pp + 2, NULL, 0);
 	  else
 	    {
@@ -549,13 +538,25 @@ main(argc, argv)
 	}
       else if (!STRNCMP(pp, "-o", 2))
 	{
+	  int reloffset = 0;
+	  int negoffset = 0;
 	  if (pp[2] && STRNCMP("ffset", pp + 2, 5))
-	    displayoff = (int)strtol(pp + 2, NULL, 0);
+	    displayoff = strtoul(pp + 2, NULL, 0);
 	  else
 	    {
 	      if (!argv[2])
 		exit_with_usage();
-	      displayoff = (int)strtol(argv[2], NULL, 0);
+
+	      if (argv[2][0] == '+')
+	       reloffset++;
+	     if (argv[2][reloffset] == '-')
+	       negoffset++;
+
+	     if (negoffset)
+	       displayoff = ULONG_MAX - strtoul(argv[2] + reloffset+negoffset, NULL, 0) + 1;
+	     else
+	       displayoff = strtoul(argv[2] + reloffset+negoffset, NULL, 0);
+
 	      argv++;
 	      argc--;
 	    }
@@ -741,7 +742,7 @@ main(argc, argv)
 	  if (fprintf(fpo, "unsigned char %s", isdigit((int)argv[1][0]) ? "__" : "") < 0)
 	    die(3);
 	  for (e = 0; (c = argv[1][e]) != 0; e++)
-	    if (putc(isalnum(c) ? c : '_', fpo) == EOF)
+          if (putc(isalnum(c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo) == EOF)
 	      die(3);
 	  if (fputs("[] = {\n", fpo) == EOF)
 	    die(3);
@@ -769,9 +770,9 @@ main(argc, argv)
 	  if (fprintf(fpo, "unsigned int %s", isdigit((int)argv[1][0]) ? "__" : "") < 0)
 	    die(3);
 	  for (e = 0; (c = argv[1][e]) != 0; e++)
-	    if (putc(isalnum(c) ? c : '_', fpo) == EOF)
+        if (putc(isalnum(c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo) == EOF)
 	      die(3);
-	  if (fprintf(fpo, "_len = %d;\n", p) < 0)
+	  if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0)
 	    die(3);
 	}
 
@@ -823,45 +824,49 @@ main(argc, argv)
     {
       if (p == 0)
 	{
-	  sprintf(l, "%08lx:",
-	    ((unsigned long)(n + seekoff + displayoff)) & 0xffffffff);
-	  for (c = 9; c < LLEN; l[c++] = ' ');
+	  if (decimal_offset)
+		addrlen = sprintf(l, "%08ld:",
+				  ((unsigned long)(n + seekoff + displayoff)));
+	  else
+		addrlen = sprintf(l, "%08lx:",
+				  ((unsigned long)(n + seekoff + displayoff)));
+	  for (c = addrlen; c < LLEN; l[c++] = ' ');
 	}
       if (hextype == HEX_NORMAL)
 	{
-	  l[c = (10 + (grplen * p) / octspergrp)] = hexx[(e >> 4) & 0xf];
+	  l[c = (addrlen + 1 + (grplen * p) / octspergrp)] = hexx[(e >> 4) & 0xf];
 	  l[++c]				  = hexx[ e       & 0xf];
 	}
       else if (hextype == HEX_LITTLEENDIAN)
 	{
 	  int x = p ^ (octspergrp-1);
-	  l[c = (10 + (grplen * x) / octspergrp)] = hexx[(e >> 4) & 0xf];
+	  l[c = (addrlen + 1 + (grplen * x) / octspergrp)] = hexx[(e >> 4) & 0xf];
 	  l[++c]				  = hexx[ e       & 0xf];
 	}
       else /* hextype == HEX_BITS */
 	{
 	  int i;
 
-	  c = (10 + (grplen * p) / octspergrp) - 1;
+	  c = (addrlen + 1 + (grplen * p) / octspergrp) - 1;
 	  for (i = 7; i >= 0; i--)
 	    l[++c] = (e & (1 << i)) ? '1' : '0';
 	}
+      if (e)
+	nonzero++;
       if (ebcdic)
 	e = (e < 64) ? '.' : etoa64[e-64];
       /* When changing this update definition of LLEN above. */
-      l[12 + (grplen * cols - 1)/octspergrp + p] =
+      l[addrlen + 3 + (grplen * cols - 1)/octspergrp + p] =
 #ifdef __MVS__
 	  (e >= 64)
 #else
 	  (e > 31 && e < 127)
 #endif
 	  ? e : '.';
-      if (e)
-	nonzero++;
       n++;
       if (++p == cols)
 	{
-	  l[c = (12 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
+	  l[c = (addrlen + 3 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
 	  xxdline(fpo, l, autoskip ? nonzero : 1);
 	  nonzero = 0;
 	  p = 0;
@@ -871,7 +876,7 @@ main(argc, argv)
     die(2);
   if (p)
     {
-      l[c = (12 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
+      l[c = (addrlen + 3 + (grplen * cols - 1)/octspergrp + p)] = '\n'; l[++c] = '\0';
       xxdline(fpo, l, 1);
     }
   else if (autoskip)

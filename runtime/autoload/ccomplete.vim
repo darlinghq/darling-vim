@@ -1,13 +1,13 @@
 " Vim completion script
 " Language:	C
 " Maintainer:	Bram Moolenaar <Bram@vim.org>
-" Last Change:	2012 Jun 20
+" Last Change:	2020 Nov 14
 
 let s:cpo_save = &cpo
 set cpo&vim
 
 " This function is used for the 'omnifunc' option.
-function! ccomplete#Complete(findstart, base)
+func ccomplete#Complete(findstart, base)
   if a:findstart
     " Locate the start of the item, including ".", "->" and "[...]".
     let line = getline('.')
@@ -72,8 +72,10 @@ function! ccomplete#Complete(findstart, base)
   " Split item in words, keep empty word after "." or "->".
   " "aa" -> ['aa'], "aa." -> ['aa', ''], "aa.bb" -> ['aa', 'bb'], etc.
   " We can't use split, because we need to skip nested [...].
+  " "aa[...]" -> ['aa', '[...]'], "aa.bb[...]" -> ['aa', 'bb', '[...]'], etc.
   let items = []
   let s = 0
+  let arrays = 0
   while 1
     let e = match(base, '\.\|->\|\[', s)
     if e < 0
@@ -107,6 +109,7 @@ function! ccomplete#Complete(findstart, base)
       endwhile
       let e += 1
       call add(items, strpart(base, s, e - s))
+      let arrays += 1
       let s = e
     endif
   endwhile
@@ -161,15 +164,26 @@ function! ccomplete#Complete(findstart, base)
 	endif
       endif
       let res = [{'match': match, 'tagline' : '', 'kind' : kind, 'info' : line}]
+    elseif len(items) == arrays + 1
+      " Completing one word and it's a local array variable: build tagline
+      " from declaration line
+      let match = items[0]
+      let kind = 'v'
+      let tagline = "\t/^" . line . '$/'
+      let res = [{'match': match, 'tagline' : tagline, 'kind' : kind, 'info' : line}]
     else
       " Completing "var.", "var.something", etc.
       let res = s:Nextitem(strpart(line, 0, col), items[1:], 0, 1)
     endif
   endif
 
-  if len(items) == 1
+  if len(items) == 1 || len(items) == arrays + 1
     " Only one part, no "." or "->": complete from tags file.
-    let tags = taglist('^' . base)
+    if len(items) == 1
+      let tags = taglist('^' . base)
+    else
+      let tags = taglist('^' . items[0] . '$')
+    endif
 
     " Remove members, these can't appear without something in front.
     call filter(tags, 'has_key(v:val, "kind") ? v:val["kind"] != "m" : 1')
@@ -230,7 +244,7 @@ function! ccomplete#Complete(findstart, base)
   return map(res, 's:Tagline2item(v:val, brackets)')
 endfunc
 
-function! s:GetAddition(line, match, memarg, bracket)
+func s:GetAddition(line, match, memarg, bracket)
   " Guess if the item is an array.
   if a:bracket && match(a:line, a:match . '\s*\[') > 0
     return '['
@@ -246,13 +260,13 @@ function! s:GetAddition(line, match, memarg, bracket)
     endif
   endif
   return ''
-endfunction
+endfunc
 
 " Turn the tag info "val" into an item for completion.
 " "val" is is an item in the list returned by taglist().
 " If it is a variable we may add "." or "->".  Don't do it for other types,
 " such as a typedef, by not including the info that s:GetAddition() uses.
-function! s:Tag2item(val)
+func s:Tag2item(val)
   let res = {'match': a:val['name']}
 
   let res['extra'] = s:Tagcmd2extra(a:val['cmd'], a:val['name'], a:val['filename'])
@@ -275,10 +289,10 @@ function! s:Tag2item(val)
   endif
 
   return res
-endfunction
+endfunc
 
 " Use all the items in dictionary for the "info" entry.
-function! s:Dict2info(dict)
+func s:Dict2info(dict)
   let info = ''
   for k in sort(keys(a:dict))
     let info  .= k . repeat(' ', 10 - len(k))
@@ -293,7 +307,7 @@ function! s:Dict2info(dict)
 endfunc
 
 " Parse a tag line and return a dictionary with items like taglist()
-function! s:ParseTagline(line)
+func s:ParseTagline(line)
   let l = split(a:line, "\t")
   let d = {}
   if len(l) >= 3
@@ -320,12 +334,12 @@ function! s:ParseTagline(line)
   endif
 
   return d
-endfunction
+endfunc
 
 " Turn a match item "val" into an item for completion.
 " "val['match']" is the matching item.
 " "val['tagline']" is the tagline in which the last part was found.
-function! s:Tagline2item(val, brackets)
+func s:Tagline2item(val, brackets)
   let line = a:val['tagline']
   let add = s:GetAddition(line, a:val['match'], [a:val], a:brackets == '')
   let res = {'word': a:val['match'] . a:brackets . add }
@@ -363,10 +377,10 @@ function! s:Tagline2item(val, brackets)
     let res['menu'] = s:Tagcmd2extra(s, a:val['match'], matchstr(line, '[^\t]*\t\zs[^\t]*\ze\t'))
   endif
   return res
-endfunction
+endfunc
 
 " Turn a command from a tag line to something that is useful in the menu
-function! s:Tagcmd2extra(cmd, name, fname)
+func s:Tagcmd2extra(cmd, name, fname)
   if a:cmd =~ '^/^'
     " The command is a search command, useful to see what it is.
     let x = matchstr(a:cmd, '^/^\s*\zs.*\ze$/')
@@ -381,13 +395,13 @@ function! s:Tagcmd2extra(cmd, name, fname)
     let x = a:cmd . ' - ' . a:fname
   endif
   return x
-endfunction
+endfunc
 
 " Find composing type in "lead" and match items[0] with it.
 " Repeat this recursively for items[1], if it's there.
 " When resolving typedefs "depth" is used to avoid infinite recursion.
 " Return the list of matches.
-function! s:Nextitem(lead, items, depth, all)
+func s:Nextitem(lead, items, depth, all)
 
   " Use the text up to the variable name and split it in tokens.
   let tokens = split(a:lead, '\s\+\|\<')
@@ -471,7 +485,7 @@ function! s:Nextitem(lead, items, depth, all)
   endfor
 
   return res
-endfunction
+endfunc
 
 
 " Search for members of structure "typename" in tags files.
@@ -479,7 +493,7 @@ endfunction
 " Each match is a dictionary with "match" and "tagline" entries.
 " When "all" is non-zero find all, otherwise just return 1 if there is any
 " member.
-function! s:StructMembers(typename, items, all)
+func s:StructMembers(typename, items, all)
   " Todo: What about local structures?
   let fnames = join(map(tagfiles(), 'escape(v:val, " \\#%")'))
   if fnames == ''
@@ -516,11 +530,24 @@ function! s:StructMembers(typename, items, all)
     endif
   endif
 
+  " Skip over [...] items
+  let idx = 0
+  while 1
+    if idx >= len(a:items)
+      let target = ''		" No further items, matching all members
+      break
+    endif
+    if a:items[idx][0] != '['
+      let target = a:items[idx]
+      break
+    endif
+    let idx += 1
+  endwhile
   " Put matching members in matches[].
   let matches = []
   for l in qflist
     let memb = matchstr(l['text'], '[^\t]*')
-    if memb =~ '^' . a:items[0]
+    if memb =~ '^' . target
       " Skip matches local to another file.
       if match(l['text'], "\tfile:") < 0 || bufnr('%') == bufnr(matchstr(l['text'], '\t\zs[^\t]*'))
 	let item = {'match': memb, 'tagline': l['text']}
@@ -540,8 +567,8 @@ function! s:StructMembers(typename, items, all)
   endfor
 
   if len(matches) > 0
-    " Skip over [...] items
-    let idx = 1
+    " Skip over next [...] items
+    let idx += 1
     while 1
       if idx >= len(a:items)
 	return matches		" No further items, return the result.
@@ -559,12 +586,12 @@ function! s:StructMembers(typename, items, all)
 
   " Failed to find anything.
   return []
-endfunction
+endfunc
 
 " For matching members, find matches for following items.
 " When "all" is non-zero find all, otherwise just return 1 if there is any
 " member.
-function! s:SearchMembers(matches, items, all)
+func s:SearchMembers(matches, items, all)
   let res = []
   for i in range(len(a:matches))
     let typename = ''
@@ -608,3 +635,5 @@ endfunc
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
+
+" vim: noet sw=2 sts=2

@@ -1,11 +1,15 @@
 " Vim completion script
 " Language:    All languages, uses existing syntax highlighting rules
 " Maintainer:  David Fishburn <dfishburn dot vim at gmail dot com>
-" Version:     13.0
-" Last Change: 2013 May 14
+" Version:     14.0
+" Last Change: 2020 Dec 30
 " Usage:       For detailed help, ":help ft-syntax-omni"
 
 " History
+"
+" Version 14.0
+"   - Fixed issue with single quotes and is_keyword
+"     https://github.com/vim/vim/issues/7463
 "
 " Version 13.0
 "   - Extended the option omni_syntax_group_include_{filetype}
@@ -179,7 +183,8 @@ function! syntaxcomplete#Complete(findstart, base)
     endif
 
     " let base = s:prepended . a:base
-    let base = s:prepended
+    " let base = s:prepended
+    let base = substitute(s:prepended, "'", "''", 'g')
 
     let filetype = substitute(&filetype, '\.', '_', 'g')
     let list_idx = index(s:cache_name, filetype, 0, &ignorecase)
@@ -548,7 +553,7 @@ function! s:SyntaxCSyntaxGroupItems( group_name, syntax_full )
         " let syn_list = substitute( @l, '^.*xxx\s*\%(contained\s*\)\?', "", '' )
         " let syn_list = substitute( @l, '^.*xxx\s*', "", '' )
 
-        " We only want the words for the lines begining with
+        " We only want the words for the lines beginning with
         " containedin, but there could be other items.
 
         " Tried to remove all lines that do not begin with contained
@@ -597,7 +602,7 @@ function! s:SyntaxCSyntaxGroupItems( group_name, syntax_full )
                 " Remove all non-word characters
                 " let syn_list = substitute( syn_list, '\<match /\zs.\{-}\<\W\+\>.\{-}\ze\/ ', "", 'g' )
                 " let syn_list = substitute( syn_list, '\%(\<match \/[^/]\{-}\)\@<=\W\+\ze.\{-}\/ ', ' ', 'g' )
-                " Do this by using the outer substitue() call to gather all
+                " Do this by using the outer substitute() call to gather all
                 " text between the match /.../ tags.
                 " The inner substitute() call operates on the text selected
                 " and replaces all non-word characters.

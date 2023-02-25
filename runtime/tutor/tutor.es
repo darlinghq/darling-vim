@@ -8,7 +8,7 @@
      aprender fácilmente a usar Vim como un editor de propósito general.
 
      El tiempo necesario para completar el tutor es aproximadamente de 25-30
-     minutos, dependiendo de cuanto tiempo se dedique a la experimentación.
+     minutos, dependiendo de cuánto tiempo se dedique a la experimentación.
 
      Los mandatos de estas lecciones modificarán el texto. Haga una copia de
      este fichero para practicar (con «vimtutor» esto ya es una copia).
@@ -76,7 +76,7 @@ Nota: Las teclas de movimiento del cursor también funcionan. Pero usando
   1. Mueva el cursor a la línea de abajo señalada con --->.
 
   2. Para corregir los errores, mueva el cursor hasta que esté bajo el
-     carácter que va aser borrado.
+     carácter que va a ser borrado.
 
   3. Pulse la tecla  x	para borrar el carácter sobrante.
 
@@ -98,7 +98,7 @@ NOTA: A medida que vaya avanzando en este tutor no intente memorizar,
 
   1. Mueva el cursor a la primera línea de abajo señalada con --->.
 
-  2. Para que la primera línea se igual a la segunda mueva el cursor bajo el
+  2. Para que la primera línea sea igual a la segunda, mueva el cursor bajo el
      primer carácter que sigue al texto que ha de ser insertado.
 
   3. Pulse  i  y escriba los caracteres a añadir.
@@ -109,7 +109,7 @@ NOTA: A medida que vaya avanzando en este tutor no intente memorizar,
 ---> Flta texto en esta .
 ---> Falta algo de texto en esta línea.
 
-  5. Cuando se sienta cómodo insertando texto pase al resumen que esta más
+  5. Cuando se sienta cómodo insertando texto pase al resumen que está más
      abajo.
 
 
@@ -224,8 +224,8 @@ NOTE: Para los aventureros, pulsando sólo el objeto estando en modo Normal
       3) El cielo es azul,
       4) Yo tengo un coche,
       5) Los relojes marcan la hora,
-      6) El azucar es dulce,
-      7) Y así eres tu.
+      6) El azúcar es dulce,
+      7) Y así eres tú.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		       Lección 2.5: EL MANDATO DESHACER
@@ -256,7 +256,7 @@ NOTE: Para los aventureros, pulsando sólo el objeto estando en modo Normal
 
   2. Para borrar desde el cursor hasta el final de una línea pulse:	d$
 
-  3. Para borrar una línea enter pulse:    dd
+  3. Para borrar una línea entera pulse:    dd
 
   4. El formato de un mandato en modo Normal es:
 
@@ -288,7 +288,7 @@ NOTE: Para los aventureros, pulsando sólo el objeto estando en modo Normal
 
   5. Repita los pasos 2 a 4 para poner todas las líneas en el orden correcto.
 
-     d) ¿Puedes aprenderla tu?
+     d) ¿Puedes aprenderla tú?
      b) Las violetas son azules,
      c) La inteligencia se aprende,
      a) Las rosas son rojas,
@@ -478,7 +478,7 @@ Nota: ¡Esto es muy útil en la detección de errores en un programa con
 
   1. Ctrl-g  muestra la posición del cursor en el fichero y su estado.
      Mayu-G mueve el cursor al final del fichero. Un número de línea
-     sewguido de Mayu-G mueve el cursor a la línea con ese número.
+     seguido de Mayu-G mueve el cursor a la línea con ese número.
 
   2. Pulsando  /  seguido de una frase busca la frase hacia ADELANTE.
      Pulsando  ?  seguido de una frase busca la frase hacia ATRÁS.
@@ -542,7 +542,7 @@ Nota: ¡Esto es muy útil en la detección de errores en un programa con
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	       Lección 5.3: UN MANDATO DE ESCRITURA SELECTIVO
 
-   ** Para guardar parte del fuchero escriba   :#,# NOMBRE_DEL_FICHERO **
+   ** Para guardar parte del fichero escriba   :#,# NOMBRE_DEL_FICHERO **
 
 
   1. Escriba de nuevo, una vez más,  :!dir  o  :!ls  para obtener una lista
@@ -593,7 +593,7 @@ NOTA: El fichero recuperado se sitúa a partir de la posición del cursor.
 	  :!dir - muestra el contenido de un directorio.
 	  :!del NOMBRE_DE_FICHERO  -  borra el fichero NOMBRE_DE FICHERO.
 
-  2.  :#,#w NOMBRE_DE _FICHERO  guarda desde las líneas # hasta la # en el
+  2.  :#,#w NOMBRE_DE _FICHERO  guarda desde la línea # hasta la # en el
      fichero NOMBRE_DE_FICHERO.
 
   3.  :r NOMBRE_DE _FICHERO  recupera el fichero del disco NOMBRE_DE FICHERO
@@ -625,7 +625,7 @@ NOTA: El fichero recuperado se sitúa a partir de la posición del cursor.
 
   4. Para abrir una línea por encima del cursor, simplemente pulse una O
      mayúscula, en lugar de una o minúscula. Pruebe este en la línea siguiente.
-Abra una línea sobre ésta pulsando Mayu-O cuando el curso está en esta línea.
+Abra una línea sobre ésta pulsando Mayu-O cuando el cursor está en esta línea.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			Lección 6.2: EL MANDATO «APPEND» (añadir)
@@ -662,7 +662,7 @@ Nota: ¡Esto evita el pulsar  i , el último carácter, el texto a insertar,
 
   3. Ahora pulse  R  y sustituya el resto del texto de la primera línea
      escribiendo sobre el viejo texto para que la primera línea sea igual
-     que la primera.
+     que la segunda.
 
 ---> Para hacer que esta línea sea igual que la anterior use las teclas.
 ---> Para hacer que esta línea sea igual que la siguiente escriba R y el texto.

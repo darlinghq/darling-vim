@@ -1,4 +1,4 @@
-/* vi:set ts=8 sts=4 sw=4:
+/* vi:set ts=8 sts=4 sw=4 noet:
  *
  * VIM - Vi IMproved	by Bram Moolenaar
  *
@@ -12,7 +12,7 @@
 
 #define	USE_TMPNAM
 
-#define POSIX	    /* Used by pty.c */
+#define POSIX	    // Used by pty.c
 
 #if defined(FEAT_GUI_PHOTON)
 extern int is_photon_available;

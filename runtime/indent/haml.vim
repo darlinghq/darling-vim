@@ -1,7 +1,7 @@
 " Vim indent file
 " Language:	Haml
 " Maintainer:	Tim Pope <vimNOSPAM@tpope.org>
-" Last Change:	2013 May 30
+" Last Change:	2019 Dec 05
 
 if exists("b:did_indent")
   finish
@@ -10,7 +10,7 @@ runtime! indent/ruby.vim
 unlet! b:did_indent
 let b:did_indent = 1
 
-setlocal autoindent sw=2 et
+setlocal autoindent
 setlocal indentexpr=GetHamlIndent()
 setlocal indentkeys=o,O,*<Return>,},],0),!^F,=end,=else,=elsif,=rescue,=ensure,=when
 
@@ -37,10 +37,11 @@ function! GetHamlIndent()
   let line = substitute(line,'^\s\+','','')
   let indent = indent(lnum)
   let cindent = indent(v:lnum)
+  let sw = shiftwidth()
   if cline =~# '\v^-\s*%(elsif|else|when)>'
-    let indent = cindent < indent ? cindent : indent - &sw
+    let indent = cindent < indent ? cindent : indent - sw
   endif
-  let increase = indent + &sw
+  let increase = indent + sw
   if indent == indent(lnum)
     let indent = cindent <= indent ? -1 : increase
   endif

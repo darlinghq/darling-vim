@@ -1,9 +1,9 @@
 " Vim indent file
 " Language:      Perl 6
 " Maintainer:    vim-perl <vim-perl@googlegroups.com>
-" Homepage:      http://github.com/vim-perl/vim-perl
-" Bugs/requests: http://github.com/vim-perl/vim-perl/issues
-" Last Change:   2013-07-21
+" Homepage:      https://github.com/vim-perl/vim-perl
+" Bugs/requests: https://github.com/vim-perl/vim-perl/issues
+" Last Change:   2020 Apr 15
 " Contributors:  Andy Lester <andy@petdance.com>
 "                Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>
 "
@@ -107,19 +107,19 @@ function! GetPerl6Indent()
     endif
 
         if line =~ '[<«\[{(]\s*\(#[^)}\]»>]*\)\=$'
-            let ind = ind + &sw
+            let ind = ind + shiftwidth()
         endif
         if cline =~ '^\s*[)}\]»>]'
-            let ind = ind - &sw
+            let ind = ind - shiftwidth()
         endif
 
     " Indent lines that begin with 'or' or 'and'
     if cline =~ '^\s*\(or\|and\)\>'
         if line !~ '^\s*\(or\|and\)\>'
-            let ind = ind + &sw
+            let ind = ind + shiftwidth()
         endif
     elseif line =~ '^\s*\(or\|and\)\>'
-        let ind = ind - &sw
+        let ind = ind - shiftwidth()
     endif
 
     return ind

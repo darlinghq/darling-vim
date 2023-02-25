@@ -1,15 +1,11 @@
 " Vim script to download a missing spell file
 " Maintainer:	Bram Moolenaar <Bram@vim.org>
-" Last Change:	2012 Jan 08
+" Last Change:	2020 Jul 10
 
 if !exists('g:spellfile_URL')
-  " Prefer using http:// when netrw should be able to use it, since
-  " more firewalls let this through.
-  if executable("curl") || executable("wget") || executable("fetch")
-    let g:spellfile_URL = 'http://ftp.vim.org/pub/vim/runtime/spell'
-  else
-    let g:spellfile_URL = 'ftp://ftp.vim.org/pub/vim/runtime/spell'
-  endif
+  " Always use https:// because it's secure.  The certificate is for nluug.nl,
+  " thus we can't use the alias ftp.vim.org here.
+  let g:spellfile_URL = 'https://ftp.nluug.nl/pub/vim/runtime/spell'
 endif
 let s:spellfile_URL = ''    " Start with nothing so that s:donedict is reset.
 
@@ -22,6 +18,7 @@ function! spellfile#LoadFile(lang)
     endif
     return
   endif
+  let lang = tolower(a:lang)
 
   " If the URL changes we try all files again.
   if s:spellfile_URL != g:spellfile_URL
@@ -30,13 +27,13 @@ function! spellfile#LoadFile(lang)
   endif
 
   " I will say this only once!
-  if has_key(s:donedict, a:lang . &enc)
+  if has_key(s:donedict, lang . &enc)
     if &verbose
       echomsg 'spellfile#LoadFile(): Tried this language/encoding before.'
     endif
     return
   endif
-  let s:donedict[a:lang . &enc] = 1
+  let s:donedict[lang . &enc] = 1
 
   " Find spell directories we can write in.
   let [dirlist, dirchoices] = spellfile#GetDirChoices()
@@ -57,14 +54,14 @@ function! spellfile#LoadFile(lang)
     endif
   endif
 
-  let msg = 'Cannot find spell file for "' . a:lang . '" in ' . &enc
+  let msg = 'Cannot find spell file for "' . lang . '" in ' . &enc
   let msg .= "\nDo you want me to try downloading it?"
   if confirm(msg, "&Yes\n&No", 2) == 1
     let enc = &encoding
     if enc == 'iso-8859-15'
       let enc = 'latin1'
     endif
-    let fname = a:lang . '.' . enc . '.spl'
+    let fname = lang . '.' . enc . '.spl'
 
     " Split the window, read the file into a new buffer.
     " Remember the buffer number, we check it below.
@@ -95,7 +92,7 @@ function! spellfile#LoadFile(lang)
 	let newbufnr = winbufnr(0)
       endif
 
-      let fname = a:lang . '.ascii.spl'
+      let fname = lang . '.ascii.spl'
       echo 'Could not find it, trying ' . fname . '...'
       call spellfile#Nread(fname)
       if getline(2) !~ 'VIMspell'

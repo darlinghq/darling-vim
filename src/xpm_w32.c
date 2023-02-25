@@ -1,4 +1,4 @@
-/* vi:set ts=8 sts=4 sw=4:
+/* vi:set ts=8 sts=4 sw=4 noet:
  *
  * Load XPM image.
  *
@@ -14,18 +14,9 @@
 #endif
 #include <windows.h>
 
-/* reduced def from Vim.h */
-#ifndef __ARGS
-# if defined(__STDC__) || defined(__GNUC__) || defined(WIN3264)
-#  define __ARGS(x) x
-# else
-#  define __ARGS(x) ()
-# endif
-#endif
-
 #include "xpm_w32.h"
 
-/* Engage Windows support in libXpm */
+// Engage Windows support in libXpm
 #define FOR_MSW
 
 #include "xpm.h"
@@ -37,13 +28,13 @@
  * "hShape".
  */
     int
-LoadXpmImage(filename, hImage, hShape)
-    char    *filename;
-    HBITMAP *hImage;
-    HBITMAP *hShape;
+LoadXpmImage(
+    char    *filename,
+    HBITMAP *hImage,
+    HBITMAP *hShape)
 {
-    XImage	    *img;  /* loaded image */
-    XImage	    *shp;  /* shapeimage */
+    XImage	    *img;  // loaded image
+    XImage	    *shp;  // shapeimage
     XpmAttributes   attr;
     int		    res;
     HDC		    hdc = CreateCompatibleDC(NULL);

@@ -1,10 +1,11 @@
 " Vim syntax file
-" Language:	DTD (Document Type Definition for XML)
-" Maintainer:	Johannes Zellner <johannes@zellner.org>
-"		Author and previous maintainer:
-"		Daniel Amyot <damyot@site.uottawa.ca>
-" Last Change:	Tue, 27 Apr 2004 14:54:59 CEST
-" Filenames:	*.dtd
+" Language: DTD (Document Type Definition for XML)
+" Maintainer: Christian Brabandt <cb@256bit.org>
+" Repository: https://github.com/chrisbra/vim-xml-ftplugin
+" Previous Maintainer: Johannes Zellner <johannes@zellner.org>
+" Author: Daniel Amyot <damyot@site.uottawa.ca>
+" Last Changed:	Sept 24, 2019
+" Filenames: *.dtd
 "
 " REFERENCES:
 "   http://www.w3.org/TR/html40/
@@ -126,41 +127,31 @@ syn keyword dtdTodo contained TODO FIXME XXX
 syn sync lines=250
 
 " Define the default highlighting.
-" For version 5.7 and earlier: only when not done already
-" For version 5.8 and later: only when an item doesn't have highlighting yet
-if version >= 508 || !exists("did_dtd_syn_inits")
-    if version < 508
-	let did_dtd_syn_inits = 1
-	command -nargs=+ HiLink hi link <args>
-    else
-	command -nargs=+ HiLink hi def link <args>
-    endif
+" Only when an item doesn't have highlighting yet
 
-    " The default highlighting.
-    HiLink dtdFunction		Function
-    HiLink dtdTag		Normal
-    HiLink dtdType		Type
-    HiLink dtdAttrType		dtdType
-    HiLink dtdAttrDef		dtdType
-    HiLink dtdConstant		Constant
-    HiLink dtdString		dtdConstant
-    HiLink dtdEnum		dtdConstant
-    HiLink dtdCard		dtdFunction
+" The default highlighting.
+hi def link dtdFunction		Function
+hi def link dtdTag		Normal
+hi def link dtdType		Type
+hi def link dtdAttrType		dtdType
+hi def link dtdAttrDef		dtdType
+hi def link dtdConstant		Constant
+hi def link dtdString		dtdConstant
+hi def link dtdEnum		dtdConstant
+hi def link dtdCard		dtdFunction
 
-    HiLink dtdEntity		Statement
-    HiLink dtdEntityPunct	dtdType
-    HiLink dtdParamEntityInst	dtdConstant
-    HiLink dtdParamEntityPunct	dtdType
-    HiLink dtdParamEntityDecl	dtdType
-    HiLink dtdParamEntityDPunct dtdComment
+hi def link dtdEntity		Statement
+hi def link dtdEntityPunct	dtdType
+hi def link dtdParamEntityInst	dtdConstant
+hi def link dtdParamEntityPunct	dtdType
+hi def link dtdParamEntityDecl	dtdType
+hi def link dtdParamEntityDPunct dtdComment
 
-    HiLink dtdComment		Comment
-    HiLink dtdTagName		Statement
-    HiLink dtdError		Error
-    HiLink dtdTodo		Todo
+hi def link dtdComment		Comment
+hi def link dtdTagName		Statement
+hi def link dtdError		Error
+hi def link dtdTodo		Todo
 
-    delcommand HiLink
-endif
 
 let &cpo = s:dtd_cpo_save
 unlet s:dtd_cpo_save

@@ -1,6 +1,6 @@
 " Vim script to work like "less"
 " Maintainer:	Bram Moolenaar <Bram@vim.org>
-" Last Change:	2014 May 13
+" Last Change:	2020 Dec 17
 
 " Avoid loading this file twice, allow the user to define his own script.
 if exists("loaded_less")
@@ -35,8 +35,16 @@ if argc() > 0
   endwhile
 endif
 
-set nocp
-syntax on
+" we don't want 'compatible' here
+if &cp
+  set nocp
+endif
+
+" enable syntax highlighting if not done already
+if !get(g:, 'syntax_on', 0)
+  syntax enable
+endif
+
 set so=0
 set hlsearch
 set incsearch
@@ -47,6 +55,12 @@ set nows
 " Inhibit screen updates while searching
 let s:lz = &lz
 set lz
+
+" Allow the user to define a function, which can set options specifically for
+" this script.
+if exists('*LessInitFunc')
+  call LessInitFunc()
+endif
 
 " Used after each command: put cursor at end and display position
 if &wrap
@@ -60,8 +74,8 @@ endif
 " When reading from stdin don't consider the file modified.
 au VimEnter * set nomod
 
-" Can't modify the text
-set noma
+" Can't modify the text or write the file.
+set nomodifiable readonly
 
 " Give help
 noremap h :call <SID>Help()<CR>
@@ -75,6 +89,10 @@ fun! s:Help()
   echo "\n"
   echo "/pattern  Search for pattern        ?pattern  Search backward for pattern"
   echo "n         next pattern match        N         Previous pattern match"
+  if &foldmethod != "manual"
+  echo "\n"
+    echo "zR        open all folds            zm        increase fold level"
+  endif
   echo "\n"
   echo ":n<Enter> Next file                 :p<Enter> Previous file"
   echo "\n"
@@ -90,7 +108,11 @@ map <C-F> <Space>
 map <PageDown> <Space>
 map <kPageDown> <Space>
 map <S-Down> <Space>
-map z <Space>
+" If 'foldmethod' was changed keep the "z" commands, e.g. "zR" to open all
+" folds.
+if &foldmethod == "manual"
+  map z <Space>
+endif
 map <Esc><Space> <Space>
 fun! s:NextPage()
   if line(".") == line("$")

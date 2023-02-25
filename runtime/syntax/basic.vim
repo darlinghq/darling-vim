@@ -1,25 +1,24 @@
 " Vim syntax file
-" Language:	BASIC
-" Maintainer:	Allan Kelly <allan@fruitloaf.co.uk>
-" Last Change:  2011 Dec 25 by Thilo Six
+" Language:		BASIC
+" Maintainer:		Doug Kearns <dougkearns@gmail.com>
+" Previous Maintainer:	Allan Kelly <allan@fruitloaf.co.uk>
+" Contributors:		Thilo Six
+" Last Change:		2015 Jan 10
 
 " First version based on Micro$soft QBASIC circa 1989, as documented in
 " 'Learn BASIC Now' by Halvorson&Rygmyr. Microsoft Press 1989.
 " This syntax file not a complete implementation yet.  Send suggestions to the
 " maintainer.
 
-" For version 5.x: Clear all syntax items
-" For version 6.x: Quit when a syntax file was already loaded
-if version < 600
-  syntax clear
-elseif exists("b:current_syntax")
+" Prelude {{{1
+if exists("b:current_syntax")
   finish
 endif
 
 let s:cpo_save = &cpo
 set cpo&vim
 
-" A bunch of useful BASIC keywords
+" Keywords {{{1
 syn keyword basicStatement	BEEP beep Beep BLOAD bload Bload BSAVE bsave Bsave
 syn keyword basicStatement	CALL call Call ABSOLUTE absolute Absolute
 syn keyword basicStatement	CHAIN chain Chain CHDIR chdir Chdir
@@ -119,61 +118,59 @@ syn keyword basicFunction	RIGHT$ right$ Right$ RTRIM$ rtrim$ Rtrim$
 syn keyword basicFunction	SPACE$ space$ Space$ STR$ str$ Str$
 syn keyword basicFunction	STRING$ string$ String$ TIME$ time$ Time$
 syn keyword basicFunction	UCASE$ ucase$ Ucase$ VARPTR$ varptr$ Varptr$
-syn keyword basicTodo contained	TODO
 
-"integer number, or floating point number without a dot.
+" Numbers {{{1
+" Integer number, or floating point number without a dot.
 syn match  basicNumber		"\<\d\+\>"
-"floating point number, with dot
+" Floating point number, with dot
 syn match  basicNumber		"\<\d\+\.\d*\>"
-"floating point number, starting with a dot
+" Floating point number, starting with a dot
 syn match  basicNumber		"\.\d\+\>"
 
-" String and Character contstants
-syn match   basicSpecial contained "\\\d\d\d\|\\."
-syn region  basicString		  start=+"+  skip=+\\\\\|\\"+  end=+"+  contains=basicSpecial
+" String and Character constants {{{1
+syn match   basicSpecial	"\\\d\d\d\|\\." contained
+syn region  basicString		start=+"+  skip=+\\\\\|\\"+  end=+"+	contains=basicSpecial
 
-syn region  basicComment	start="REM" end="$" contains=basicTodo
-syn region  basicComment	start="^[ \t]*'" end="$" contains=basicTodo
+" Line numbers {{{1
 syn region  basicLineNumber	start="^\d" end="\s"
-syn match   basicTypeSpecifier  "[a-zA-Z0-9][\$%&!#]"ms=s+1
+
+" Data-type suffixes {{{1
+syn match   basicTypeSpecifier	"[a-zA-Z0-9][$%&!#]"ms=s+1
 " Used with OPEN statement
 syn match   basicFilenumber  "#\d\+"
-"syn sync ccomment basicComment
+
+" Mathematical operators {{{1
 " syn match   basicMathsOperator "[<>+\*^/\\=-]"
-syn match   basicMathsOperator   "-\|=\|[:<>+\*^/\\]\|AND\|OR"
+syn match   basicMathsOperator	 "-\|=\|[:<>+\*^/\\]\|AND\|OR"
 
-" Define the default highlighting.
-" For version 5.7 and earlier: only when not done already
-" For version 5.8 and later: only when an item doesn't have highlighting yet
-if version >= 508 || !exists("did_basic_syntax_inits")
-  if version < 508
-    let did_basic_syntax_inits = 1
-    command -nargs=+ HiLink hi link <args>
-  else
-    command -nargs=+ HiLink hi def link <args>
-  endif
+" Comments {{{1
+syn keyword basicTodo		TODO FIXME XXX NOTE contained
+syn region  basicComment	start="^\s*\zsREM\>" start="\%(:\s*\)\@<=REM\>" end="$" contains=basicTodo
+syn region  basicComment	start="'"					end="$" contains=basicTodo
 
-  HiLink basicLabel		Label
-  HiLink basicConditional	Conditional
-  HiLink basicRepeat		Repeat
-  HiLink basicLineNumber	Comment
-  HiLink basicNumber		Number
-  HiLink basicError		Error
-  HiLink basicStatement	Statement
-  HiLink basicString		String
-  HiLink basicComment		Comment
-  HiLink basicSpecial		Special
-  HiLink basicTodo		Todo
-  HiLink basicFunction		Identifier
-  HiLink basicTypeSpecifier Type
-  HiLink basicFilenumber basicTypeSpecifier
-  "hi basicMathsOperator term=bold cterm=bold gui=bold
+"syn sync ccomment basicComment
 
-  delcommand HiLink
-endif
+" Default Highlighting {{{1
+hi def link basicLabel		Label
+hi def link basicConditional	Conditional
+hi def link basicRepeat		Repeat
+hi def link basicLineNumber	Comment
+hi def link basicNumber		Number
+hi def link basicError		Error
+hi def link basicStatement	Statement
+hi def link basicString		String
+hi def link basicComment	Comment
+hi def link basicSpecial	Special
+hi def link basicTodo		Todo
+hi def link basicFunction	Identifier
+hi def link basicTypeSpecifier	Type
+hi def link basicFilenumber	basicTypeSpecifier
+"hi basicMathsOperator term=bold cterm=bold gui=bold
 
+" Postscript {{{1
 let b:current_syntax = "basic"
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
-" vim: ts=8
+
+" vim: nowrap sw=2 sts=2 ts=8 noet fdm=marker:

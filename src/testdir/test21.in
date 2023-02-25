@@ -1,19 +1,13 @@
-Tests for [ CTRL-I with a count and CTRL-W CTRL-I with a count
+Tests for file with some lines ending in CTRL-M, some not
 
 STARTTEST
-:so small.vim
-/start
-6[	:.w! test.out
-?start here
-6	:.w >>test.out
+:set ta tx
+:e!
+:$-3,$w! test.out
 :qa!
 ENDTEST
 
-#include test21.in
-
-/* test text test tex start here
-		some text
-		test text
-		start OK if found this line
-	start found wrong line
-test text
+this lines ends in a
+this one doesn't
+this one does
+and the last one doesn't

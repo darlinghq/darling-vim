@@ -1,4 +1,4 @@
-/* vi:set ts=8 sts=4 sw=4:
+/* vi:set ts=8 sts=4 sw=4 noet:
  *
  * VIM - Vi IMproved		by Bram Moolenaar
  *
@@ -46,25 +46,26 @@
  */
 #if !defined(FEAT_TINY) && !defined(FEAT_SMALL) && !defined(FEAT_NORMAL) \
 	&& !defined(FEAT_BIG) && !defined(FEAT_HUGE)
-/* #define FEAT_TINY */
-/* #define FEAT_SMALL */
-/* #define FEAT_NORMAL */
-/* #define FEAT_BIG */
-/* #define FEAT_HUGE */
+// #define FEAT_TINY
+// #define FEAT_SMALL
+// #define FEAT_NORMAL
+// #define FEAT_BIG
+// #define FEAT_HUGE
 #endif
 
 /*
- * These executables are made available with the +big feature, because they
- * are supposed to have enough RAM: Win32 (console & GUI), dos32, OS/2 and VMS.
- * The dos16 version has very little RAM available, use +small.
+ * For Unix, Mac and Win32 use +huge by default.  These days CPUs are fast and
+ * Memory is cheap.
+ * Use +big for older systems: Other MS-Windows and VMS.
+ * Otherwise use +normal
  */
 #if !defined(FEAT_TINY) && !defined(FEAT_SMALL) && !defined(FEAT_NORMAL) \
 	&& !defined(FEAT_BIG) && !defined(FEAT_HUGE)
-# if defined(MSWIN) || defined(DJGPP) || defined(OS2) || defined(VMS) || defined(MACOS) || defined(AMIGA)
-#  define FEAT_BIG
+# if defined(UNIX) || defined(MSWIN) || defined(MACOS_X)
+#  define FEAT_HUGE
 # else
-#  ifdef MSDOS
-#   define FEAT_SMALL
+#  if defined(MSWIN) || defined(VMS) || defined(AMIGA)
+#   define FEAT_BIG
 #  else
 #   define FEAT_NORMAL
 #  endif
@@ -93,38 +94,28 @@
  */
 
 /*
+ * These features used to be optional but are now always enabled:
  * +windows		Multiple windows.  Without this there is no help
  *			window and no status lines.
- */
-#ifdef FEAT_SMALL
-# define FEAT_WINDOWS
-#endif
-
-/*
- * +listcmds		Vim commands for the buffer list and the argument
- *			list.  Without this there is no ":buffer" ":bnext",
- *			":bdel", ":argdelete", etc.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_LISTCMDS
-#endif
-
-/*
  * +vertsplit		Vertically split windows.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_VERTSPLIT
-#endif
-#if defined(FEAT_VERTSPLIT) && !defined(FEAT_WINDOWS)
-# define FEAT_WINDOWS
-#endif
-
-/*
  * +cmdhist		Command line history.
+ * +localmap		Mappings and abbreviations local to a buffer.
+ * +visual		Visual mode
+ * +visualextra		Extra features for Visual mode (mostly block operators).
+ * +virtualedit		'virtualedit' option and its implementation
+ * +user_commands	Allow the user to define his own commands.
+ * +multi_byte		Generic multi-byte character handling.
+ * +cmdline_compl	completion of mappings/abbreviations in cmdline mode.
+ * +insert_expand	CTRL-N/CTRL-P/CTRL-X in insert mode.
+ * +modify_fname	modifiers for file name.  E.g., "%:p:h".
+ * +comments		'comments' option.
+ *
+ * Obsolete:
+ * +tag_old_static	Old style static tags: "file:tag  file  ..".
+ *			Support was removed in 8.1.1093.
+ * +farsi		Farsi (Persian language) Keymap support.
+ *			Removed in patch 8.1.0932
  */
-#ifdef FEAT_SMALL
-# define FEAT_CMDHIST
-#endif
 
 /*
  * Message history is fixed at 200 message, 20 for the tiny version.
@@ -142,8 +133,7 @@
 # define FEAT_JUMPLIST
 #endif
 
-/* the cmdline-window requires FEAT_VERTSPLIT and FEAT_CMDHIST */
-#if defined(FEAT_VERTSPLIT) && defined(FEAT_CMDHIST)
+#if defined(FEAT_SMALL)
 # define FEAT_CMDWIN
 #endif
 
@@ -163,7 +153,7 @@
  */
 #ifdef FEAT_NORMAL
 # define FEAT_DIGRAPHS
-/* #define OLD_DIGRAPHS */
+// #define OLD_DIGRAPHS
 #endif
 
 /*
@@ -183,53 +173,8 @@
 # define FEAT_KEYMAP
 #endif
 
-/*
- * +localmap		Mappings and abbreviations local to a buffer.
- */
 #ifdef FEAT_NORMAL
-# define FEAT_LOCALMAP
-#endif
-
-/*
- * +insert_expand	CTRL-N/CTRL-P/CTRL-X in insert mode. Takes about
- *			4Kbyte of code.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_INS_EXPAND
-#endif
-
-/*
- * +cmdline_compl	completion of mappings/abbreviations in cmdline mode.
- *			Takes a few Kbyte of code.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_CMDL_COMPL
-#endif
-
-#ifdef FEAT_NORMAL
-# define VIM_BACKTICK		/* internal backtick expansion */
-#endif
-
-/*
- * +visual		Visual mode - now always included.
- * +visualextra		Extra features for Visual mode (mostly block operators).
- */
-#ifdef FEAT_NORMAL
-# define FEAT_VISUALEXTRA
-#endif
-
-/*
- * +virtualedit		'virtualedit' option and its implementation
- */
-#ifdef FEAT_NORMAL
-# define FEAT_VIRTUALEDIT
-#endif
-
-/*
- * +vreplace		"gR" and "gr" commands.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_VREPLACE
+# define VIM_BACKTICK		// internal backtick expansion
 #endif
 
 /*
@@ -245,13 +190,6 @@
  */
 #ifdef FEAT_NORMAL
 # define FEAT_LINEBREAK
-#endif
-
-/*
- * +ex_extra		":retab", ":right", ":left", ":center", ":normal".
- */
-#ifdef FEAT_NORMAL
-# define FEAT_EX_EXTRA
 #endif
 
 /*
@@ -279,7 +217,7 @@
  * +find_in_path	"[I" ":isearch" "^W^I", ":checkpath", etc.
  */
 #ifdef FEAT_NORMAL
-# ifdef FEAT_SEARCHPATH	/* FEAT_SEARCHPATH is required */
+# ifdef FEAT_SEARCHPATH	// FEAT_SEARCHPATH is required
 #  define FEAT_FIND_ID
 # endif
 #endif
@@ -296,32 +234,17 @@
  *
  * Disabled for EBCDIC as it requires multibyte.
  */
-#if defined(FEAT_BIG) && !defined(EBCDIC)
+#if defined(FEAT_BIG) && !defined(DISABLE_RIGHTLEFT) && !defined(EBCDIC)
 # define FEAT_RIGHTLEFT
 #endif
 
 /*
- * +farsi		Farsi (Persian language) Keymap support.
- *			Requires FEAT_RIGHTLEFT.
- *
- * Disabled for EBCDIC as it requires multibyte.
- */
-#if defined(FEAT_BIG) && !defined(EBCDIC)
-# define FEAT_FKMAP
-#endif
-#ifdef FEAT_FKMAP
-# ifndef FEAT_RIGHTLEFT
-#   define FEAT_RIGHTLEFT
-# endif
-#endif
-
-/*
  * +arabic		Arabic keymap and shaping support.
- *			Requires FEAT_RIGHTLEFT and FEAT_MBYTE.
+ *			Requires FEAT_RIGHTLEFT
  *
  * Disabled for EBCDIC as it requires multibyte.
  */
-#if defined(FEAT_BIG) && !defined(WIN16) && VIM_SIZEOF_INT >= 4 && !defined(EBCDIC)
+#if defined(FEAT_BIG) && !defined(DISABLE_ARABIC) && !defined(EBCDIC)
 # define FEAT_ARABIC
 #endif
 #ifdef FEAT_ARABIC
@@ -347,23 +270,9 @@
  * sorted by character values.  I'm not sure how to fix this. Should we really
  * do a EBCDIC to ASCII conversion for this??
  */
-#if defined(FEAT_NORMAL) && !defined(EBCDIC)
+#if !defined(EBCDIC)
 # define FEAT_TAG_BINS
 #endif
-
-/*
- * +tag_old_static	Old style static tags: "file:tag  file  ..".  Slows
- *			down tag searching a bit.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_TAG_OLDSTATIC
-#endif
-
-/*
- * +tag_any_white	Allow any white space to separate the fields in a tags
- *			file.  When not defined, only a TAB is allowed.
- */
-/* #define FEAT_TAG_ANYWHITE */
 
 /*
  * +cscope		Unix only: Cscope support.
@@ -379,9 +288,13 @@
  */
 #ifdef FEAT_NORMAL
 # define FEAT_EVAL
-# if defined(HAVE_FLOAT_FUNCS) || defined(WIN3264) || defined(MACOS)
+# if defined(HAVE_FLOAT_FUNCS) || defined(MSWIN) || defined(MACOS_X)
 #  define FEAT_FLOAT
 # endif
+#endif
+
+#ifdef FEAT_EVAL
+# define HAVE_SANDBOX
 #endif
 
 /*
@@ -390,7 +303,7 @@
 #if defined(FEAT_HUGE) \
 	&& defined(FEAT_EVAL) \
 	&& ((defined(HAVE_GETTIMEOFDAY) && defined(HAVE_SYS_TIME_H)) \
-		|| defined(WIN3264))
+		|| defined(MSWIN))
 # define FEAT_PROFILE
 #endif
 
@@ -400,8 +313,15 @@
 #if defined(FEAT_NORMAL) \
 	&& defined(FEAT_EVAL) \
 	&& ((defined(HAVE_GETTIMEOFDAY) && defined(HAVE_SYS_TIME_H)) \
-		|| defined(WIN3264))
+		|| defined(MSWIN))
 # define FEAT_RELTIME
+#endif
+
+/*
+ * +timers		timer_start()
+ */
+#if defined(FEAT_RELTIME) && (defined(UNIX) || defined(MSWIN) || defined(VMS) )
+# define FEAT_TIMERS
 #endif
 
 /*
@@ -414,15 +334,8 @@
 /*
  *			Insert mode completion with 'completefunc'.
  */
-#if defined(FEAT_INS_EXPAND) && defined(FEAT_EVAL)
+#if defined(FEAT_EVAL)
 # define FEAT_COMPL_FUNC
-#endif
-
-/*
- * +user_commands	Allow the user to define his own commands.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_USR_CMDS
 #endif
 
 /*
@@ -439,24 +352,10 @@
 #endif
 
 /*
- * +modify_fname	modifiers for file name.  E.g., "%:p:h".
- */
-#ifdef FEAT_NORMAL
-# define FEAT_MODIFY_FNAME
-#endif
-
-/*
- * +autocmd		":autocmd" command
- */
-#ifdef FEAT_NORMAL
-# define FEAT_AUTOCMD
-#endif
-
-/*
  * +diff		Displaying diffs in a nice way.
  *			Requires +windows and +autocmd.
  */
-#if defined(FEAT_NORMAL) && defined(FEAT_WINDOWS) && defined(FEAT_AUTOCMD)
+#if defined(FEAT_NORMAL)
 # define FEAT_DIFF
 #endif
 
@@ -468,14 +367,14 @@
  *			and byte2line().
  *			Note: Required for Macintosh.
  */
-#if defined(FEAT_NORMAL) && !defined(MSDOS)
+#if defined(FEAT_NORMAL)
 # define FEAT_TITLE
 #endif
 
 #ifdef FEAT_NORMAL
 # define FEAT_STL_OPT
 # ifndef FEAT_CMDL_INFO
-#  define FEAT_CMDL_INFO	/* 'ruler' is required for 'statusline' */
+#  define FEAT_CMDL_INFO	// 'ruler' is required for 'statusline'
 # endif
 #endif
 
@@ -494,7 +393,7 @@
 /*
  * +wildmenu		'wildmenu' option
  */
-#if defined(FEAT_NORMAL) && defined(FEAT_WINDOWS)
+#if defined(FEAT_NORMAL)
 # define FEAT_WILDMENU
 #endif
 
@@ -506,8 +405,8 @@
  */
 #ifdef FEAT_NORMAL
 # define FEAT_VIMINFO
-/* #define VIMINFO_FILE	"$HOME/foo/.viminfo" */
-/* #define VIMINFO_FILE2 "~/bar/.viminfo" */
+// #define VIMINFO_FILE	"$HOME/foo/.viminfo"
+// #define VIMINFO_FILE2 "~/bar/.viminfo"
 #endif
 
 /*
@@ -542,7 +441,6 @@
  *			with HAVE_TGETENT defined).
  *
  * (nothing)		Machine specific termcap entries will be included.
- *			This is default for win16 to save static data.
  *
  * SOME_BUILTIN_TCAPS	Include most useful builtin termcap entries (used only
  *			with NO_BUILTIN_TCAPS not defined).
@@ -552,14 +450,14 @@
  *			(used only with NO_BUILTIN_TCAPS not defined).
  */
 #ifdef HAVE_TGETENT
-/* #define NO_BUILTIN_TCAPS */
+// #define NO_BUILTIN_TCAPS
 #endif
 
-#if !defined(NO_BUILTIN_TCAPS) && !defined(FEAT_GUI_W16)
+#if !defined(NO_BUILTIN_TCAPS)
 # ifdef FEAT_BIG
 #  define ALL_BUILTIN_TCAPS
 # else
-#  define SOME_BUILTIN_TCAPS		/* default */
+#  define SOME_BUILTIN_TCAPS		// default
 # endif
 #endif
 
@@ -583,13 +481,6 @@
 #endif
 
 /*
- * +comments		'comments' option.
- */
-#ifdef FEAT_NORMAL
-# define FEAT_COMMENTS
-#endif
-
-/*
  * +cryptv		Encryption (by Mohsin Ahmed <mosh@sasi.com>).
  */
 #if defined(FEAT_NORMAL) && !defined(FEAT_CRYPT) || defined(PROTO)
@@ -598,9 +489,9 @@
 
 /*
  * +mksession		":mksession" command.
- *			Requires +windows and +vertsplit.
+ *			fully depends on +eval
  */
-#if defined(FEAT_NORMAL) && defined(FEAT_WINDOWS) && defined(FEAT_VERTSPLIT)
+#if defined(FEAT_EVAL)
 # define FEAT_SESSION
 #endif
 
@@ -618,113 +509,61 @@
 #endif
 
 /*
- * +multi_byte		Generic multi-byte character handling.  Doesn't work
- *			with 16 bit ints.  Required for GTK+ 2.
- *
- * Disabled for EBCDIC:
- * Multibyte support doesn't work on z/OS Unix currently.
+ * +multi_byte_ime	Win32 IME input method.  Only for far-east Windows, so
+ *			IME can be used to input chars.  Not tested much!
  */
-#if (defined(FEAT_NORMAL) || defined(FEAT_GUI_GTK) || defined(FEAT_ARABIC)) \
-	&& !defined(FEAT_MBYTE) && !defined(WIN16) \
-	&& VIM_SIZEOF_INT >= 4 && !defined(EBCDIC)
-# define FEAT_MBYTE
+#if defined(FEAT_GUI_MSWIN) && !defined(FEAT_MBYTE_IME)
+// #define FEAT_MBYTE_IME
 #endif
 
-/* Define this if you want to use 16 bit Unicode only, reduces memory used for
- * the screen structures. */
-/* #define UNICODE16 */
-
-/*
- * +multi_byte_ime	Win32 IME input method.  Requires +multi_byte.
- *			Only for far-east Windows, so IME can be used to input
- *			chars.  Not tested much!
- */
-#if defined(FEAT_GUI_W32) && !defined(FEAT_MBYTE_IME)
-/* #define FEAT_MBYTE_IME */
-# endif
-
-#if defined(FEAT_MBYTE_IME) && !defined(FEAT_MBYTE)
-# define FEAT_MBYTE
+#if defined(FEAT_BIG) && defined(FEAT_GUI_HAIKU) && !defined(FEAT_MBYTE_IME)
+# define FEAT_MBYTE_IME
 #endif
 
-#if defined(FEAT_MBYTE) && VIM_SIZEOF_INT < 4 && !defined(PROTO)
-	Error: Can only handle multi-byte feature with 32 bit int or larger
-#endif
-
-/* Use iconv() when it's available. */
-#if defined(FEAT_MBYTE) && ((defined(HAVE_ICONV_H) && defined(HAVE_ICONV)) \
-		|| defined(DYNAMIC_ICONV))
+// Use iconv() when it's available.
+#if (defined(HAVE_ICONV_H) && defined(HAVE_ICONV)) || defined(DYNAMIC_ICONV)
 # define USE_ICONV
 #endif
 
 /*
  * +xim			X Input Method.  For entering special languages like
  *			chinese and Japanese.
- * +hangul_input	Internal Hangul input method.  Must be included
- *			through configure: "--enable-hangulin"
- * Both are for Unix and VMS only.
+ *			this is for Unix and VMS only.
  */
 #ifndef FEAT_XIM
-/* #define FEAT_XIM */
+// #define FEAT_XIM
 #endif
 
 #if defined(FEAT_XIM) && defined(FEAT_GUI_GTK)
-# define USE_XIM 1		/* needed for GTK include files */
+# define USE_XIM 1		// needed for GTK include files
 #endif
 
-#ifdef FEAT_HANGULIN
-# define HANGUL_DEFAULT_KEYBOARD 2	/* 2 or 3 bulsik keyboard */
-# define ESC_CHG_TO_ENG_MODE		/* if defined, when ESC pressed,
-					 * turn to english mode
-					 */
-# if !defined(FEAT_XFONTSET) && defined(HAVE_X11) && !defined(FEAT_GUI_GTK)
-#  define FEAT_XFONTSET			/* Hangul input requires xfontset */
-# endif
-# if defined(FEAT_XIM) && !defined(LINT)
-	Error: You should select only ONE of XIM and HANGUL INPUT
-# endif
-#endif
-#if defined(FEAT_HANGULIN) || defined(FEAT_XIM)
-/* # define X_LOCALE */			/* for OS with incomplete locale
-					   support, like old linux versions. */
-/* # define SLOW_XSERVER */		/* for extremely slow X server */
+#if defined(FEAT_XIM)
+// # define X_LOCALE			// for OS with incomplete locale
+					// support, like old linux versions.
 #endif
 
 /*
  * +xfontset		X fontset support.  For outputting wide characters.
  */
 #ifndef FEAT_XFONTSET
-# if defined(FEAT_MBYTE) && defined(HAVE_X11) && !defined(FEAT_GUI_GTK)
+# if defined(HAVE_X11) && !defined(FEAT_GUI_GTK)
 #  define FEAT_XFONTSET
 # else
-/* #  define FEAT_XFONTSET */
+// #  define FEAT_XFONTSET
 # endif
 #endif
 
 /*
  * +libcall		libcall() function
  */
-/* Using dlopen() also requires dlsym() to be available. */
+// Using dlopen() also requires dlsym() to be available.
 #if defined(HAVE_DLOPEN) && defined(HAVE_DLSYM)
 # define USE_DLOPEN
 #endif
-#if defined(FEAT_EVAL) && (defined(WIN3264) || ((defined(UNIX) || defined(VMS)) \
+#if defined(FEAT_EVAL) && (defined(MSWIN) || ((defined(UNIX) || defined(VMS)) \
 	&& (defined(USE_DLOPEN) || defined(HAVE_SHL_LOAD))))
 # define FEAT_LIBCALL
-#endif
-
-/*
- * +scrollbind		synchronization of split windows
- */
-#if defined(FEAT_NORMAL) && defined(FEAT_WINDOWS)
-# define FEAT_SCROLLBIND
-#endif
-
-/*
- * +cursorbind		synchronization of split windows
- */
-#if defined(FEAT_NORMAL) && defined(FEAT_WINDOWS)
-# define FEAT_CURSORBIND
 #endif
 
 /*
@@ -732,12 +571,29 @@
  */
 #ifdef FEAT_NORMAL
 # define FEAT_MENU
-# ifdef FEAT_GUI_W32
+# ifdef FEAT_GUI_MSWIN
 #  define FEAT_TEAROFF
 # endif
 #endif
 
-/* There are two ways to use XPM. */
+/*
+ * popup menu in a terminal
+ */
+#if defined(FEAT_MENU) && !defined(ALWAYS_USE_GUI)
+# define FEAT_TERM_POPUP_MENU
+#endif
+
+/*
+ * sound - currently only with libcanberra
+ */
+#if !defined(FEAT_SOUND) && defined(HAVE_CANBERRA)
+# define FEAT_SOUND
+#endif
+#if defined(FEAT_SOUND) && defined(HAVE_CANBERRA)
+# define FEAT_SOUND_CANBERRA
+#endif
+
+// There are two ways to use XPM.
 #if (defined(HAVE_XM_XPMP_H) && defined(FEAT_GUI_MOTIF)) \
 		|| defined(HAVE_X11_XPM_H)
 # define HAVE_XPM 1
@@ -752,7 +608,9 @@
 		|| defined(FEAT_GUI_MSWIN) \
 		|| ((defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA)) \
 			&& defined(HAVE_XPM)) \
-		|| defined(FEAT_GUI_PHOTON))
+		|| defined(FEAT_GUI_PHOTON) \
+		|| defined(FEAT_GUI_HAIKU))
+
 # define FEAT_TOOLBAR
 #endif
 
@@ -762,13 +620,20 @@
 #endif
 
 /*
+ * GUI dark theme variant
+ */
+#if defined(FEAT_GUI_GTK) && defined(USE_GTK3)
+# define FEAT_GUI_DARKTHEME
+#endif
+
+/*
  * GUI tabline
  */
-#if defined(FEAT_WINDOWS) && defined(FEAT_NORMAL) \
+#if defined(FEAT_NORMAL) \
     && (defined(FEAT_GUI_GTK) \
 	|| (defined(FEAT_GUI_MOTIF) && defined(HAVE_XM_NOTEBOOK_H)) \
-	|| defined(FEAT_GUI_MAC) \
-	|| (defined(FEAT_GUI_MSWIN) && !defined(WIN16) \
+	|| defined(FEAT_GUI_HAIKU) \
+	|| (defined(FEAT_GUI_MSWIN) \
 	    && (!defined(_MSC_VER) || _MSC_VER > 1020)))
 # define FEAT_GUI_TABLINE
 #endif
@@ -779,7 +644,8 @@
  */
 #if defined(FEAT_NORMAL)
 # define FEAT_BROWSE_CMD
-# if defined(FEAT_GUI_MSWIN) || defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA) || defined(FEAT_GUI_GTK) || defined(FEAT_GUI_PHOTON) || defined(FEAT_GUI_MAC)
+# if defined(FEAT_GUI_MSWIN) || defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA) \
+	|| defined(FEAT_GUI_GTK) || defined(FEAT_GUI_HAIKU) || defined(FEAT_GUI_PHOTON)
 #  define FEAT_BROWSE
 # endif
 #endif
@@ -789,7 +655,7 @@
  * there is no terminal version, and on Windows we can't figure out how to
  * fork one off with :gui.
  */
-#if defined(FEAT_GUI_MSWIN) || (defined(FEAT_GUI_MAC) && !defined(MACOS_X_UNIX))
+#if defined(FEAT_GUI_MSWIN) && !defined(VIMDLL)
 # define ALWAYS_USE_GUI
 #endif
 
@@ -803,8 +669,8 @@
 		&& defined(HAVE_X11_XPM_H)) \
 	|| defined(FEAT_GUI_GTK) \
 	|| defined(FEAT_GUI_PHOTON) \
-	|| defined(FEAT_GUI_MSWIN) \
-	|| defined(FEAT_GUI_MAC)
+	|| defined(FEAT_GUI_HAIKU) \
+	|| defined(FEAT_GUI_MSWIN)
 #  define FEAT_CON_DIALOG
 #  define FEAT_GUI_DIALOG
 # else
@@ -813,23 +679,33 @@
 #endif
 #if !defined(FEAT_GUI_DIALOG) && (defined(FEAT_GUI_MOTIF) \
 	|| defined(FEAT_GUI_ATHENA) || defined(FEAT_GUI_GTK) \
-	|| defined(FEAT_GUI_W32))
-/* need a dialog to show error messages when starting from the desktop */
+	|| defined(FEAT_GUI_MSWIN))
+// need a dialog to show error messages when starting from the desktop
 # define FEAT_GUI_DIALOG
 #endif
 #if defined(FEAT_GUI_DIALOG) && \
 	(defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA) \
 	 || defined(FEAT_GUI_GTK) || defined(FEAT_GUI_MSWIN) \
-	 || defined(FEAT_GUI_PHOTON) || defined(FEAT_GUI_MAC))
+	 || defined(FEAT_GUI_PHOTON) \
+	 || defined(FEAT_GUI_HAIKU))
 # define FEAT_GUI_TEXTDIALOG
 # ifndef ALWAYS_USE_GUI
 #  define FEAT_CON_DIALOG
 # endif
 #endif
 
-/* Mac specific thing: Codewarrior interface. */
-#ifdef FEAT_GUI_MAC
-# define FEAT_CW_EDITOR
+/*
+ * +termguicolors	'termguicolors' option.
+ */
+#if (defined(FEAT_BIG) && defined(FEAT_SYN_HL)) && !defined(ALWAYS_USE_GUI)
+# define FEAT_TERMGUICOLORS
+#endif
+
+/*
+ * +vartabs		'vartabstop' and 'varsofttabstop' options.
+ */
+#ifdef FEAT_BIG
+# define FEAT_VARTABS
 #endif
 
 /*
@@ -857,12 +733,12 @@
  *			be set to save the screen when starting Vim and
  *			restoring it when exiting.
  */
-/* #define FEAT_XTERM_SAVE */
+// #define FEAT_XTERM_SAVE
 
 /*
  * DEBUG		Output a lot of debugging garbage.
  */
-/* #define DEBUG */
+// #define DEBUG
 
 /*
  * STARTUPTIME		Time the startup process.  Writes a file with
@@ -870,29 +746,29 @@
  */
 #if defined(FEAT_NORMAL) \
 	&& ((defined(HAVE_GETTIMEOFDAY) && defined(HAVE_SYS_TIME_H)) \
-		|| defined(WIN3264))
+		|| defined(MSWIN))
 # define STARTUPTIME 1
 #endif
 
 /*
  * MEM_PROFILE		Debugging of memory allocation and freeing.
  */
-/* #define MEM_PROFILE */
+// #define MEM_PROFILE
 
 /*
  * VIMRC_FILE		Name of the .vimrc file in current dir.
  */
-/* #define VIMRC_FILE	".vimrc" */
+// #define VIMRC_FILE	".vimrc"
 
 /*
  * EXRC_FILE		Name of the .exrc file in current dir.
  */
-/* #define EXRC_FILE	".exrc" */
+// #define EXRC_FILE	".exrc"
 
 /*
  * GVIMRC_FILE		Name of the .gvimrc file in current dir.
  */
-/* #define GVIMRC_FILE	".gvimrc" */
+// #define GVIMRC_FILE	".gvimrc"
 
 /*
  * SESSION_FILE		Name of the default ":mksession" file.
@@ -904,44 +780,49 @@
  * USR_VIMRC_FILE2	Name of alternate user .vimrc file.
  * USR_VIMRC_FILE3	Name of alternate user .vimrc file.
  */
-/* #define USR_VIMRC_FILE	"~/foo/.vimrc" */
-/* #define USR_VIMRC_FILE2	"~/bar/.vimrc" */
-/* #define USR_VIMRC_FILE3	"$VIM/.vimrc" */
+// #define USR_VIMRC_FILE	"~/foo/.vimrc"
+// #define USR_VIMRC_FILE2	"~/bar/.vimrc"
+// #define USR_VIMRC_FILE3	"$VIM/.vimrc"
+
+/*
+ * VIM_DEFAULTS_FILE	Name of the defaults.vim script file
+ */
+// #define VIM_DEFAULTS_FILE	"$VIMRUNTIME/defaults.vim"
 
 /*
  * EVIM_FILE		Name of the evim.vim script file
  */
-/* #define EVIM_FILE		"$VIMRUNTIME/evim.vim" */
+// #define EVIM_FILE		"$VIMRUNTIME/evim.vim"
 
 /*
  * USR_EXRC_FILE	Name of the user .exrc file.
  * USR_EXRC_FILE2	Name of the alternate user .exrc file.
  */
-/* #define USR_EXRC_FILE	"~/foo/.exrc" */
-/* #define USR_EXRC_FILE2	"~/bar/.exrc" */
+// #define USR_EXRC_FILE	"~/foo/.exrc"
+// #define USR_EXRC_FILE2	"~/bar/.exrc"
 
 /*
  * USR_GVIMRC_FILE	Name of the user .gvimrc file.
  * USR_GVIMRC_FILE2	Name of the alternate user .gvimrc file.
  */
-/* #define USR_GVIMRC_FILE	"~/foo/.gvimrc" */
-/* #define USR_GVIMRC_FILE2	"~/bar/.gvimrc" */
-/* #define USR_GVIMRC_FILE3	"$VIM/.gvimrc" */
+// #define USR_GVIMRC_FILE	"~/foo/.gvimrc"
+// #define USR_GVIMRC_FILE2	"~/bar/.gvimrc"
+// #define USR_GVIMRC_FILE3	"$VIM/.gvimrc"
 
 /*
  * SYS_VIMRC_FILE	Name of the system-wide .vimrc file.
  */
-/* #define SYS_VIMRC_FILE	"/etc/vimrc" */
+// #define SYS_VIMRC_FILE	"/etc/vimrc"
 
 /*
  * SYS_GVIMRC_FILE	Name of the system-wide .gvimrc file.
  */
-/* #define SYS_GVIMRC_FILE	"/etc/gvimrc" */
+// #define SYS_GVIMRC_FILE	"/etc/gvimrc"
 
 /*
  * DFLT_HELPFILE	Name of the help file.
  */
-/* # define DFLT_HELPFILE	"$VIMRUNTIME/doc/help.txt.gz" */
+// # define DFLT_HELPFILE	"$VIMRUNTIME/doc/help.txt.gz"
 
 /*
  * File names for:
@@ -952,17 +833,17 @@
  * FTPLUGOF_FILE	switch off loading settings files
  * INDOFF_FILE		switch off loading indent files
  */
-/* # define FILETYPE_FILE	"filetype.vim" */
-/* # define FTPLUGIN_FILE	"ftplugin.vim" */
-/* # define INDENT_FILE		"indent.vim" */
-/* # define FTOFF_FILE		"ftoff.vim" */
-/* # define FTPLUGOF_FILE	"ftplugof.vim" */
-/* # define INDOFF_FILE		"indoff.vim" */
+// # define FILETYPE_FILE	"filetype.vim"
+// # define FTPLUGIN_FILE	"ftplugin.vim"
+// # define INDENT_FILE		"indent.vim"
+// # define FTOFF_FILE		"ftoff.vim"
+// # define FTPLUGOF_FILE	"ftplugof.vim"
+// # define INDOFF_FILE		"indoff.vim"
 
 /*
  * SYS_MENU_FILE	Name of the default menu.vim file.
  */
-/* # define SYS_MENU_FILE	"$VIMRUNTIME/menu.vim" */
+// # define SYS_MENU_FILE	"$VIMRUNTIME/menu.vim"
 
 /*
  * SYS_OPTWIN_FILE	Name of the default optwin.vim file.
@@ -974,7 +855,7 @@
 /*
  * SYNTAX_FNAME		Name of a syntax file, where %s is the syntax name.
  */
-/* #define SYNTAX_FNAME	"/foo/%s.vim" */
+// #define SYNTAX_FNAME	"/foo/%s.vim"
 
 /*
  * RUNTIME_DIRNAME	Generic name for the directory of the runtime files.
@@ -984,19 +865,29 @@
 #endif
 
 /*
- * RUNTIME_GLOBAL	Directory name for global Vim runtime directory.
+ * RUNTIME_GLOBAL	Comma-separated list of directory names for global Vim
+ *			runtime directories.
  *			Don't define this if the preprocessor can't handle
  *			string concatenation.
  *			Also set by "--with-global-runtime" configure argument.
  */
-/* #define RUNTIME_GLOBAL "/etc/vim" */
+// #define RUNTIME_GLOBAL "/etc/vim"
+
+/*
+ * RUNTIME_GLOBAL_AFTER	Comma-separated list of directory names for global Vim
+ *			runtime after directories.
+ *			Don't define this if the preprocessor can't handle
+ *			string concatenation.
+ *			Also set by "--with-global-runtime" configure argument.
+ */
+// #define RUNTIME_GLOBAL_AFTER "/etc/vim/after"
 
 /*
  * MODIFIED_BY		Name of who modified Vim.  Required when distributing
  *			a modified version of Vim.
  *			Also from the "--with-modified-by" configure argument.
  */
-/* #define MODIFIED_BY "John Doe" */
+// #define MODIFIED_BY "John Doe"
 
 /*
  * Machine dependent:
@@ -1008,7 +899,7 @@
  * +system		Use system() instead of fork/exec for starting a
  *			shell.  Doesn't work for the GUI!
  */
-/* #define USE_SYSTEM */
+// #define USE_SYSTEM
 
 /*
  * +X11			Unix only.  Include code for xterm title saving and X
@@ -1046,14 +937,14 @@
  * +mouse_sgr		Unix only: Include code for for SGR-styled mouse.
  * +mouse_sysmouse	Unix only: Include code for FreeBSD and DragonFly
  *			console mouse handling.
- * +mouse_urxvt		Unix only: Include code for for urxvt mosue handling.
+ * +mouse_urxvt		Unix only: Include code for for urxvt mouse handling.
  * +mouse		Any mouse support (any of the above enabled).
+ *			Always included, since either FEAT_MOUSE_XTERM or
+ *			DOS_MOUSE is defined.
  */
-/* OS/2 and Amiga console have no mouse support */
-#if !defined(AMIGA) && !defined(OS2)
-# ifdef FEAT_NORMAL
-#  define FEAT_MOUSE_XTERM
-# endif
+// Amiga console has no mouse support
+#if defined(UNIX) || defined(VMS)
+# define FEAT_MOUSE_XTERM
 # ifdef FEAT_BIG
 #  define FEAT_MOUSE_NET
 # endif
@@ -1063,15 +954,12 @@
 # ifdef FEAT_BIG
 #  define FEAT_MOUSE_URXVT
 # endif
-# ifdef FEAT_BIG
-#  define FEAT_MOUSE_SGR
-# endif
-# if defined(FEAT_NORMAL) && (defined(MSDOS) || defined(WIN3264))
-#  define DOS_MOUSE
-# endif
-# if defined(FEAT_NORMAL) && defined(__QNX__)
-#  define FEAT_MOUSE_PTERM
-# endif
+#endif
+#if defined(MSWIN)
+# define DOS_MOUSE
+#endif
+#if defined(__QNX__)
+# define FEAT_MOUSE_PTERM
 #endif
 
 /*
@@ -1089,32 +977,9 @@
 # define FEAT_SYSMOUSE
 #endif
 
-/* urxvt is a small variation of mouse_xterm, and shares its code */
+// urxvt is a small variation of mouse_xterm, and shares its code
 #if defined(FEAT_MOUSE_URXVT) && !defined(FEAT_MOUSE_XTERM)
 # define FEAT_MOUSE_XTERM
-#endif
-
-/* sgr is a small variation of mouse_xterm, and shares its code */
-#if defined(FEAT_MOUSE_SGR) && !defined(FEAT_MOUSE_XTERM)
-# define FEAT_MOUSE_XTERM
-#endif
-
-/* Define FEAT_MOUSE when any of the above is defined or FEAT_GUI. */
-#if !defined(FEAT_MOUSE_TTY) \
-	&& (defined(FEAT_MOUSE_XTERM) \
-	    || defined(FEAT_MOUSE_NET) \
-	    || defined(FEAT_MOUSE_DEC) \
-	    || defined(DOS_MOUSE) \
-	    || defined(FEAT_MOUSE_GPM) \
-	    || defined(FEAT_MOUSE_JSB) \
-	    || defined(FEAT_MOUSE_PTERM) \
-	    || defined(FEAT_SYSMOUSE) \
-	    || defined(FEAT_MOUSE_URXVT) \
-	    || defined(FEAT_MOUSE_SGR))
-# define FEAT_MOUSE_TTY		/* include non-GUI mouse support */
-#endif
-#if !defined(FEAT_MOUSE) && (defined(FEAT_MOUSE_TTY) || defined(FEAT_GUI))
-# define FEAT_MOUSE		/* include generic mouse support */
 #endif
 
 /*
@@ -1150,7 +1015,7 @@
 #endif
 
 #if defined(FEAT_GUI_MSWIN) && defined(FEAT_SMALL)
-# define MSWIN_FIND_REPLACE	/* include code for find/replace dialog */
+# define MSWIN_FIND_REPLACE	// include code for find/replace dialog
 # define MSWIN_FR_BUFSIZE 256
 #endif
 
@@ -1163,8 +1028,22 @@
  * +clientserver	Remote control via the remote_send() function
  *			and the --remote argument
  */
-#if (defined(WIN32) || defined(FEAT_XCLIPBOARD)) && defined(FEAT_EVAL)
+#if (defined(MSWIN) || defined(FEAT_XCLIPBOARD)) && defined(FEAT_EVAL)
 # define FEAT_CLIENTSERVER
+#endif
+
+/*
+ * +autoservername	Automatically generate a servername for clientserver
+ *			when --servername is not passed on the command line.
+ */
+#if defined(FEAT_CLIENTSERVER) && !defined(FEAT_AUTOSERVERNAME)
+# ifdef MSWIN
+    // Always enabled on MS-Windows.
+#  define FEAT_AUTOSERVERNAME
+# else
+    // Enable here if you don't use configure.
+// # define FEAT_AUTOSERVERNAME
+# endif
 #endif
 
 /*
@@ -1172,7 +1051,7 @@
  *			to check if mouse dragging can be used and if term
  *			codes can be obtained.
  */
-#if (defined(FEAT_NORMAL) || defined(FEAT_MOUSE)) && defined(HAVE_TGETENT)
+#if defined(HAVE_TGETENT)
 # define FEAT_TERMRESPONSE
 #endif
 
@@ -1181,19 +1060,19 @@
  * mouse shape		Adjust the shape of the mouse pointer to the mode.
  */
 #ifdef FEAT_NORMAL
-/* MS-DOS console and Win32 console can change cursor shape */
-# if defined(MSDOS) || (defined(WIN3264) && !defined(FEAT_GUI_W32))
+// Win32 console can change cursor shape
+# if defined(MSWIN) && (!defined(FEAT_GUI_MSWIN) || defined(VIMDLL))
 #  define MCH_CURSOR_SHAPE
 # endif
-# if defined(FEAT_GUI_W32) || defined(FEAT_GUI_W16) || defined(FEAT_GUI_MOTIF) \
+# if defined(FEAT_GUI_MSWIN) || defined(FEAT_GUI_MOTIF) \
 	|| defined(FEAT_GUI_ATHENA) || defined(FEAT_GUI_GTK) \
 	|| defined(FEAT_GUI_PHOTON)
 #  define FEAT_MOUSESHAPE
 # endif
 #endif
 
-/* GUI and some consoles can change the shape of the cursor.  The code is also
- * needed for the 'mouseshape' and 'concealcursor' options. */
+// GUI and some consoles can change the shape of the cursor.  The code is also
+// needed for the 'mouseshape' and 'concealcursor' options.
 #if defined(FEAT_GUI) \
 	    || defined(MCH_CURSOR_SHAPE) \
 	    || defined(FEAT_MOUSESHAPE) \
@@ -1202,23 +1081,18 @@
 # define CURSOR_SHAPE
 #endif
 
-#if defined(FEAT_MZSCHEME) && (defined(FEAT_GUI_W32) || defined(FEAT_GUI_GTK)    \
-	|| defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA)	\
-	|| defined(FEAT_GUI_MAC))
+#if defined(FEAT_MZSCHEME) && (defined(FEAT_GUI_MSWIN) || defined(FEAT_GUI_GTK)    \
+	|| defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA))
 # define MZSCHEME_GUI_THREADS
 #endif
 
 /*
  * +ARP			Amiga only. Use arp.library, DOS 2.0 is not required.
  */
-#if !defined(NO_ARP) && !defined(__amigaos4__)
+#if defined(AMIGA) && !defined(NO_ARP) && !defined(__amigaos4__) \
+	&& !defined(__MORPHOS__) && !defined(__AROS__)
 # define FEAT_ARP
 #endif
-
-/*
- * +GUI_Athena		To compile Vim with or without the GUI (gvim) you have
- * +GUI_Motif		to edit the Makefile.
- */
 
 /*
  * +ole			Win32 OLE automation: Use Makefile.ovc.
@@ -1232,9 +1106,10 @@
  * +perl		Perl interface: "--enable-perlinterp"
  * +python		Python interface: "--enable-pythoninterp"
  * +tcl			TCL interface: "--enable-tclinterp"
- * +sniff		Sniff interface: "--enable-sniff"
- * +sun_workshop	Sun Workshop integration
  * +netbeans_intg	Netbeans integration
+ * +channel		Inter process communication
+ * +GUI_Athena		Athena GUI
+ * +GUI_Motif		Motif GUI
  */
 
 /*
@@ -1244,31 +1119,57 @@
  */
 
 /*
- * The Sun Workshop features currently only work with Motif.
+ * The Netbeans feature requires +eval.
  */
-#if !defined(FEAT_GUI_MOTIF) && defined(FEAT_SUN_WORKSHOP)
-# undef FEAT_SUN_WORKSHOP
+#if !defined(FEAT_EVAL) && defined(FEAT_NETBEANS_INTG)
+# undef FEAT_NETBEANS_INTG
 #endif
 
 /*
- * The Netbeans feature requires +listcmds and +eval.
+ * The +channel feature requires +eval.
  */
-#if (!defined(FEAT_LISTCMDS) || !defined(FEAT_EVAL)) \
-	&& defined(FEAT_NETBEANS_INTG)
-# undef FEAT_NETBEANS_INTG
+#if !defined(FEAT_EVAL) && defined(FEAT_JOB_CHANNEL)
+# undef FEAT_JOB_CHANNEL
 #endif
+
+/*
+ * +terminal		":terminal" command.  Runs a terminal in a window.
+ *			requires +channel
+ */
+#if defined(FEAT_TERMINAL) && !defined(FEAT_JOB_CHANNEL)
+# undef FEAT_TERMINAL
+#endif
+#if defined(FEAT_TERMINAL) && !defined(CURSOR_SHAPE)
+# define CURSOR_SHAPE
+#endif
+#if defined(FEAT_TERMINAL) && !defined(FEAT_SYN_HL)
+// simplify the code a bit by enabling +syntax when +terminal is enabled
+# define FEAT_SYN_HL
+#endif
+
+/*
+ * +textprop and +popupwin	Text PROPerties and POPUP windows
+ */
+#if defined(FEAT_EVAL) && defined(FEAT_SYN_HL)
+# define FEAT_PROP_POPUP
+#endif
+
+#if defined(FEAT_SYN_HL) && defined(FEAT_RELTIME)
+// Can limit syntax highlight time to 'redrawtime'.
+# define SYN_TIME_LIMIT 1
+#endif
+
 
 /*
  * +signs		Allow signs to be displayed to the left of text lines.
  *			Adds the ":sign" command.
  */
-#if defined(FEAT_BIG) || defined(FEAT_SUN_WORKSHOP) \
-	    || defined(FEAT_NETBEANS_INTG)
+#if defined(FEAT_BIG) || defined(FEAT_NETBEANS_INTG) || defined(FEAT_PROP_POPUP)
 # define FEAT_SIGNS
 # if ((defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA)) \
 		&& defined(HAVE_X11_XPM_H)) \
 	|| defined(FEAT_GUI_GTK) \
-	|| (defined(WIN32) && defined(FEAT_GUI))
+	|| (defined(MSWIN) && defined(FEAT_GUI))
 #  define FEAT_SIGN_ICONS
 # endif
 #endif
@@ -1279,58 +1180,58 @@
  *			Only for GUIs where it was implemented.
  */
 #if (defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA) \
-	|| defined(FEAT_GUI_GTK) || defined(FEAT_GUI_W32)) \
+	|| defined(FEAT_GUI_GTK) || defined(FEAT_GUI_MSWIN)) \
 	&& (   ((defined(FEAT_TOOLBAR) || defined(FEAT_GUI_TABLINE)) \
-		&& !defined(FEAT_GUI_GTK) && !defined(FEAT_GUI_W32)) \
-	    || defined(FEAT_SUN_WORKSHOP) \
+		&& !defined(FEAT_GUI_GTK) && !defined(FEAT_GUI_MSWIN)) \
 	    || defined(FEAT_NETBEANS_INTG) || defined(FEAT_EVAL))
-# define FEAT_BEVAL
+# define FEAT_BEVAL_GUI
 # if !defined(FEAT_XFONTSET) && !defined(FEAT_GUI_GTK) \
-	&& !defined(FEAT_GUI_W32)
+	&& !defined(FEAT_GUI_MSWIN)
 #  define FEAT_XFONTSET
 # endif
 #endif
 
-#if defined(FEAT_BEVAL) && (defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA))
-# define FEAT_BEVAL_TIP		/* balloon eval used for toolbar tooltip */
+#if defined(FEAT_BEVAL_GUI) && (defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA))
+# define FEAT_BEVAL_TIP		// balloon eval used for toolbar tooltip
 #endif
 
-/* both Motif and Athena are X11 and share some code */
+/*
+ * +balloon_eval_term	Allow balloon expression evaluation in the terminal.
+ */
+#if defined(FEAT_HUGE) && defined(FEAT_TIMERS) && \
+	(defined(UNIX) || defined(VMS) || \
+	 (defined(MSWIN) && (!defined(FEAT_GUI_MSWIN) || defined(VIMDLL))))
+# define FEAT_BEVAL_TERM
+#endif
+
+#if defined(FEAT_BEVAL_GUI) || defined(FEAT_BEVAL_TERM)
+# define FEAT_BEVAL
+#endif
+
+// both Motif and Athena are X11 and share some code
 #if defined(FEAT_GUI_MOTIF) || defined(FEAT_GUI_ATHENA)
 # define FEAT_GUI_X11
 #endif
 
-#if defined(FEAT_SUN_WORKSHOP) || defined(FEAT_NETBEANS_INTG)
-/*
- * The following features are (currently) only used by Sun Visual WorkShop 6
- * and NetBeans. These features could be used with other integrations with
- * debuggers so I've used separate feature defines.
- */
+#if defined(FEAT_NETBEANS_INTG)
+// NetBeans uses menus.
 # if !defined(FEAT_MENU)
 #  define FEAT_MENU
 # endif
 #endif
 
-#if defined(FEAT_SUN_WORKSHOP)
-/*
- *			Use an alternative method of X input for a secondary
- *			command input.
- */
-# define ALT_X_INPUT
-
+#if 0
 /*
  * +footer		Motif only: Add a message area at the bottom of the
  *			main window area.
  */
 # define FEAT_FOOTER
-
 #endif
 
 /*
  * +autochdir		'autochdir' option.
  */
-#if defined(FEAT_SUN_WORKSHOP) || defined(FEAT_NETBEANS_INTG) \
-	    || defined(FEAT_BIG)
+#if defined(FEAT_NETBEANS_INTG) || defined(FEAT_BIG)
 # define FEAT_AUTOCHDIR
 #endif
 
@@ -1346,6 +1247,13 @@
  * +filterpipe
  */
 #if (defined(UNIX) && !defined(USE_SYSTEM)) \
-	    || (defined(WIN3264) && defined(FEAT_GUI_W32))
+	    || (defined(MSWIN) && defined(FEAT_GUI_MSWIN))
 # define FEAT_FILTERPIPE
+#endif
+
+/*
+ * +vtp: Win32 virtual console.
+ */
+#if (!defined(FEAT_GUI) || defined(VIMDLL)) && defined(MSWIN)
+# define FEAT_VTP
 #endif
