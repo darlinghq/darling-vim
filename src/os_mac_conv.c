@@ -25,7 +25,9 @@
 #if defined(MACOS_CONVERT) || defined(PROTO)
 
 #include <SoftLinking/WeakLinking.h>
+#ifndef DARLING
 WEAK_LINK_FORCE_IMPORT(CreateTextEncoding);
+#endif
 
 # ifdef PROTO
 // A few dummy types to be able to generate function prototypes.
