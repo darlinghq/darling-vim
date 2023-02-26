@@ -1,0 +1,2 @@
+#define DYNAMIC_RUBY_VER 26
+#define RUBY_VERSION 26
