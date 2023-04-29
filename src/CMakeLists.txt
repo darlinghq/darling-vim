@@ -142,17 +142,24 @@ set(libvterm_sources
 	libvterm/src/vterm.c
 )
 
-add_darling_static_library(libvterm SOURCES ${libvterm_sources})
-add_darling_executable(vim ${vim_sources})
-target_link_libraries(vim system CoreServices ncurses CoreFoundation Foundation AppKit iconv libvterm)
+# requires `dev_gui_common` component because of AppKit and CoreServices
+if (COMPONENT_dev_gui_common)
+	add_darling_static_library(libvterm SOURCES ${libvterm_sources})
+	add_darling_executable(vim ${vim_sources})
+	target_link_libraries(vim system CoreServices ncurses CoreFoundation Foundation AppKit iconv libvterm)
 
-add_darling_executable(xxd xxd/xxd.c)
+	install(TARGETS vim DESTINATION libexec/darling/usr/bin)
 
-install(TARGETS vim xxd DESTINATION libexec/darling/usr/bin)
+	InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/ex")
+	InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/rview")
+	InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/rvim")
+	InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/vi")
+	InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/view")
+	InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/vimdiff")
+endif()
 
-InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/ex")
-InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/rview")
-InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/rvim")
-InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/vi")
-InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/view")
-InstallSymlink(vim "${CMAKE_INSTALL_PREFIX}/libexec/darling/usr/bin/vimdiff")
+if (COMPONENT_cli)
+	add_darling_executable(xxd xxd/xxd.c)
+
+	install(TARGETS xxd DESTINATION libexec/darling/usr/bin)
+endif()
