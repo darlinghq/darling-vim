@@ -144,6 +144,7 @@ set(libvterm_sources
 
 # requires `dev_gui_common` component because of AppKit and CoreServices
 if (COMPONENT_dev_gui_common)
+	set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME "cli_dev_gui_common")
 	add_darling_static_library(libvterm SOURCES ${libvterm_sources})
 	add_darling_executable(vim ${vim_sources})
 	target_link_libraries(vim system CoreServices ncurses CoreFoundation Foundation AppKit iconv libvterm)
@@ -159,6 +160,7 @@ if (COMPONENT_dev_gui_common)
 endif()
 
 if (COMPONENT_cli)
+	set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME "cli")
 	add_darling_executable(xxd xxd/xxd.c)
 
 	install(TARGETS xxd DESTINATION libexec/darling/usr/bin)
